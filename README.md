@@ -54,6 +54,17 @@ npm --prefix ./analyzers/wala_single install ./analyzers/wala_single
 
 
 
+## Dynamic Analyzer Updates
+
+I've been working on improving the dynamic analyzer. To test the updates, run:
+
+```
+node ./lacuna.js --analyzer dynamic --directory "$PWD/test_code"
+```
+
+Items added:<br/>
+Bug fix for analyzer<br/>
+Printing analytics after completion
 
 
 ## Running
