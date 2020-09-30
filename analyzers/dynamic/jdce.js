@@ -94,7 +94,6 @@ module.exports =
 					// logs are formatted 'identifier|file|start|stop'.
 					let regex = /([^\|]+) \| ([^\|]+) \| ([0-9]+) \| ([0-9]+)/g;
 					let result = regex.exec(log);	// [data, logger_name, file_name, start, end]
-					console.log(result);
 					// Only look for logs that start with our log identifier.
 					if(result === null ||  result[1] != logger_name)
 					{
@@ -172,16 +171,47 @@ module.exports =
 						}
 					}
 				});
-
 				return files;
 			}
 
+			function print_analytics(results) {
+				for (const file in script_editors) {
+					if (script_editors[file].functions != null) {
+						const [functionsNotCalledInFile, totalWordCount] = get_functions_not_called_in_file(results, file)
+						console.log(`In ${file}, there were ${script_editors[file].functions.length} functions in total. ${functionsNotCalledInFile.length} were removed, saving ${totalWordCount} bytes. The functions removed were:`);
+						console.log(functionsNotCalledInFile);
+					}
+				}
+			}
 
+			function get_functions_not_called_in_file(results, file) {
+				let totalWordCount = 0;
+				const functionsNotCalledFilter = (file) => {
+					// Create a function_start_map to store the start position of all the functions that were called. The idea is that two functions can't start at the same position
+					let function_start_map = {};
+					results[file].forEach((entry) => {
+						function_start_map[entry.start] = 1;
+					});
+
+					// Return the filter function which uses this function start map
+					return (entry) => {
+						// check if the start position of the function we're looking at is in the function start map, if it's not, then the function was not called
+						if (function_start_map[entry.start] == null) {
+							totalWordCount += (entry.end-entry.start);
+							return true;
+						}
+						return false;
+					};
+				};
+
+				return [script_editors[file].functions.filter(functionsNotCalledFilter(file)), totalWordCount];
+
+			}
 
 			function return_results(results)
 			{
 				results = fix_results(results);
-
+				print_analytics(results);
 				// Return statistics to caller.
 				callback( results );
 			}
