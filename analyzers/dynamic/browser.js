@@ -32,7 +32,8 @@ module.exports = function()
 
 		// Load the page.
 		this.driver.get(url);
-
+		this.driver.executeScript("console.log('test functionality')");
+		this.driver.executeScript("window.scrollTo(0, document.body.scrollHeight);");
 
 		// The function to run.
 		let runner = function()
@@ -44,6 +45,7 @@ module.exports = function()
 			{
 				entries.forEach(function(entry)
 				{
+					console.log(entry);
 					logs.push(entry.message);
 				});
 
