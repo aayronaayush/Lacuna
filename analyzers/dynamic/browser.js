@@ -7,7 +7,10 @@
 
 var phantomjs = require('phantomjs-prebuilt-that-works')
 var selenium = require('selenium-webdriver')
+var JSSoup = require('jssoup').default;
+var TAGS = ["nav","li","ul","div","p","span","h1","h2","h3","h4","h5","h6","p","button"];
 
+var i;
 
 module.exports = function()
 {
@@ -32,8 +35,27 @@ module.exports = function()
 
 		// Load the page.
 		this.driver.get(url);
+
+		// wait for the page to load all the contents
+		this.driver.sleep(1000);
+
 		this.driver.executeScript("console.log('test functionality')");
 		this.driver.executeScript("window.scrollTo(0, document.body.scrollHeight);");
+
+		// get the rendered HTML code
+		this.soup = this.driver.getPageSource();
+
+		//var tagsOnSite = this.driver.executeScript("a = Array.from(document.querySelectorAll('*')); return a;")
+
+
+
+
+		var curr_tag = this.driver.findElements(selenium.By.css("p")).length;
+		console.log('asdf');
+		// console.log(curr_tag.constructor);
+
+
+
 
 		// The function to run.
 		let runner = function()
