@@ -189,9 +189,11 @@ module.exports =
 				const functionsNotCalledFilter = (file) => {
 					// Create a function_start_map to store the start position of all the functions that were called. The idea is that two functions can't start at the same position
 					let function_start_map = {};
-					results[file].forEach((entry) => {
-						function_start_map[entry.start] = 1;
-					});
+					if (results[file] != null) {
+						results[file].forEach((entry) => {
+							function_start_map[entry.start] = 1;
+						});
+					}
 
 					// Return the filter function which uses this function start map
 					return (entry) => {

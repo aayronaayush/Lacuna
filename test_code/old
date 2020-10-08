@@ -1,0 +1,15 @@
+function myFunction(){
+	a();
+	function anotherFunction(){
+		console.log("This is anotherFunction");
+	}
+}
+
+function a(){
+	console.log("This is a");
+}
+
+function b(){
+	console.log("This is b");
+}
+myFunction();

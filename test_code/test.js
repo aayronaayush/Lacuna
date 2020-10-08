@@ -1,11 +1,6 @@
-function myFunction(){
-	a();
-	function anotherFunction(){}
-}
+function myFunction(){}
 
-function a(){
-	console.log("This is a");
-}
+function a(){}
 
 function b(){}
 myFunction();

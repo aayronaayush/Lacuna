@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="WalaCG_single">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/analyzers/wala_single/WalaCG_single.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
