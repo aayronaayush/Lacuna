@@ -1,6 +1,10 @@
-function myFunction(){}
+function myFunction(){
+	a();
+}
 
-function a(){}
+function a(){
+	console.warn("I was called")
+}
 
 function b(){}
 myFunction();

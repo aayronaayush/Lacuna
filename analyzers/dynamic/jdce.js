@@ -61,7 +61,7 @@ module.exports =
 						// Add a log call to each function in this script. The only argument (a function) specifies the format.
 						js.add_log_calls(function(file, start, end)
 						{
-							return `console.log("${logger_name}", "|", "${file}", "|", ${start}, "|", ${end})`;
+							return `console.warn('${logger_name}', '|', '${file}', '|', ${start}, '|', ${end})`;
 						});
 
 						js.save();
@@ -89,20 +89,22 @@ module.exports =
 			function parse_logs(logs, logger_name)
 			{
 				let logs_per_file = {};
+				console.log(logs);
 				logs.forEach(function(log)
 				{
 					// logs are formatted 'identifier|file|start|stop'.
-					let regex = /([^\|]+) \| ([^\|]+) \| ([0-9]+) \| ([0-9]+)/g;
+					let regex = /([^\|]+) "([^\|]+)" "\|" "([^\|]+)" "\|" ([^\|]+) "\|" ([^\|]+)/g;
 					let result = regex.exec(log);	// [data, logger_name, file_name, start, end]
+					console.log(result)
 					// Only look for logs that start with our log identifier.
-					if(result === null ||  result[1] != logger_name)
+					if(result === null ||  result[2] != logger_name)
 					{
 						return;
 					}
 
-					let file = result[2],
-						start = result[3],
-						end = result[4];
+					let file = result[3],
+						start = result[4],
+						end = result[5];
 
 					if( ! logs_per_file.hasOwnProperty(file) )
 					{
