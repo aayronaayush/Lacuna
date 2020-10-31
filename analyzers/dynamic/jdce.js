@@ -7,7 +7,6 @@
 
 
 let path = require('path'),
-	HtmlEditor = require('./html_editor'),
 	JsEditor = require('./js_editor'),
 	Browser = require('./browser');
 
@@ -30,42 +29,26 @@ module.exports =
 			};
 		`;
 
-			// Create a new HTML editor instance. We'll reset the HTML source later.
-			let html = new HtmlEditor();
-
-			// Retrieve HTML source.
-			html.load(settings.html_path);
-
-			// Add the script tag to the begining of the <head> tag.
-			html.add( '<script>' + js_head_code + '</script>', html.location.HEAD_FIRST );
-
-			// Overwrite the old source.
-			html.save();
-
 			let script_editors = [];
 			settings.scripts.forEach(function(logger_name)
 			{
 				return function(script_data)
 				{
-					// Only deal with .js files, HTML file won't parse right.
-					if(script_data.file.split('.').pop() == 'js')
+					// Create a new script editor instance and save it so we can change the source, and reset it afterwards.
+					let js = new JsEditor();
+
+					// Save it, so we can access it later (and restore the original source).
+					script_editors[script_data.file] = js;
+
+					js.load(script_data.full_path, script_data.source, settings.url);
+
+					// Add a log call to each function in this script. The only argument (a function) specifies the format.
+					js.add_log_calls(function(file, start, end)
 					{
-						// Create a new script editor instance and save it so we can change the source, and reset it afterwards.
-						let js = new JsEditor();
+						return `console.warn('${logger_name}', '|', '${file}', '|', ${start}, '|', ${end});\n`;
+					});
 
-						// Save it, so we can access it later (and restore the original source).
-						script_editors[script_data.file] = js;
-
-						js.load(script_data.full_path, script_data.source);
-
-						// Add a log call to each function in this script. The only argument (a function) specifies the format.
-						js.add_log_calls(function(file, start, end)
-						{
-							return `console.warn('${logger_name}', '|', '${file}', '|', ${start}, '|', ${end})`;
-						});
-
-						js.save();
-					}
+					js.save();
 				}
 			}(this.settings.logger_name));
 
@@ -77,7 +60,7 @@ module.exports =
 			// Open the web app, and deal with the results.
 			browser.start();
 
-			browser.load(settings.html_path, settings.timeout, function(console_logs)
+			browser.load(settings.url, settings.timeout, function(console_logs)
 			{
 				let logs = parse_logs(console_logs, logger_name);
 				cleanup();
@@ -89,13 +72,11 @@ module.exports =
 			function parse_logs(logs, logger_name)
 			{
 				let logs_per_file = {};
-				console.log(logs);
 				logs.forEach(function(log)
 				{
 					// logs are formatted 'identifier|file|start|stop'.
 					let regex = /([^\|]+) "([^\|]+)" "\|" "([^\|]+)" "\|" ([^\|]+) "\|" ([^\|]+)/g;
 					let result = regex.exec(log);	// [data, logger_name, file_name, start, end]
-					console.log(result)
 					// Only look for logs that start with our log identifier.
 					if(result === null ||  result[2] != logger_name)
 					{
@@ -127,7 +108,6 @@ module.exports =
 							});
 					}
 				});
-
 				return logs_per_file;
 			}
 
@@ -145,9 +125,6 @@ module.exports =
 					}
 				}
 
-				// Remove inserted script tag from the HTML source.
-				html.restore();
-
 				// Close the browser.
 				browser.stop();
 			}
@@ -157,21 +134,11 @@ module.exports =
 			function fix_results(results)
 			{
 				let files = [];
-
 				settings.scripts.forEach(function(script)
 				{
-					let correct_name = script.file;
-
-					for(let file in results)
-					{
-						if(results.hasOwnProperty(file) )
-						{
-							if( path.join(settings.directory, correct_name) == file )
-							{
-								files[correct_name] = results[file];
-							}
-						}
-					}
+					let correct_name = script.file;		
+					files[correct_name] = results[correct_name];
+						
 				});
 				return files;
 			}
@@ -180,8 +147,8 @@ module.exports =
 				for (const file in script_editors) {
 					if (script_editors[file].functions != null) {
 						const [functionsNotCalledInFile, totalWordCount] = get_functions_not_called_in_file(results, file)
-						console.log(`In ${file}, there were ${script_editors[file].functions.length} functions in total. ${functionsNotCalledInFile.length} were removed, saving ${totalWordCount} bytes. The functions removed were:`);
-						console.log(functionsNotCalledInFile);
+						console.log(`In ${file}, there were ${script_editors[file].functions.length} functions in total. ${functionsNotCalledInFile.length} were removed, saving ${totalWordCount} bytes.`);
+
 					}
 				}
 			}

@@ -4,13 +4,14 @@ const jdce = require('./jdce.js');
 
 
 
-module.exports = function(directory, html_path, timeout, scripts, callback)
+module.exports = function(directory, html_path, timeout, scripts, url, callback)
 {
 	jdce.run(
 	{
 		directory: directory,
 		html_path: html_path,
 		timeout: timeout,
-		scripts: scripts
+		scripts: scripts,
+		url: url
 	}, callback);
 };

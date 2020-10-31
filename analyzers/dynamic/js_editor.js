@@ -11,7 +11,7 @@ require('./native_extentions');
 
 let file_system = require('fs'),
     esprima = require('esprima');
-
+const DBModel = require('../../db');
 
 
 module.exports = function()
@@ -20,39 +20,38 @@ module.exports = function()
 	this.source = null;
 	this.original_source = null;
 	this.functions = null;
- 
+	this.url = null;
 
 
-	this.load = function(file_name, source)
+	this.load = function(file_name, source, url)
 	{
 		if(file_name)
 		{
 			this.file_name = file_name;
 			this.original_source = this.source = source;
-
+			this.url = url
 			// Also retrieve and save a list of all functions in this script file.
 			this.functions = this.get_functions( this.source );
 		}
 	};
 
 
-	this.save = function()
+	this.save = async function()
 	{
 		if(this.file_name == null)
 		{
 			return;
 		}
-
-		file_system.writeFileSync( this.file_name, this.source );
+		await DBModel.update({siteName: this.url, 'modules.url': this.file_name}, {'modules.$.latestBody': this.source});
 	};
 
 
 
-	this.restore = function()
+	this.restore = async function()
 	{
 		this.source = this.original_source;
 
-		this.save();
+		await this.save();
 	};
 
 
@@ -77,7 +76,6 @@ module.exports = function()
 			// Increment the offset with the length of the log call, so the next insertion is at the right place.
 			offset += log_call.length;
 		}
-
 		this.source = new_source;
 	};
 
