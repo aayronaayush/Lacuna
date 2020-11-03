@@ -199,6 +199,7 @@ module.exports =
 		// Create a graph with each function as a node, plus the base caller node.
 		// Connect them all together from the start, using the CONSTRUCTED_EDGE type.
 		let nodes = GraphTools.build_function_graph(scripts, CONSTRUCTED_EDGE.value);
+		console.log("Finished creating function graph");
 		// The number of functions is the number of nodes in the graph, minus one for the base caller node.
 		stats.function_count = nodes.length - 1;
 
