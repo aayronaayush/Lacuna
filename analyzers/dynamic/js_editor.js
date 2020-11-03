@@ -86,47 +86,56 @@ module.exports = function()
 		let functions = [];
 
 		let last_function = null;
-
-		esprima.parseModule(source, {range: true}, function(node, meta)
-		{
-			// We are only interested in functions (declarations and expressions).
-			if(node.type == 'FunctionDeclaration' || node.type == 'FunctionExpression')
+		
+		try {
+			esprima.parseModule(source, {range: true}, function(node, meta)
 			{
-				let containing_function = last_function;
-				last_function = node;
-
-				// Gather the data for this function in a abbreviated format.
-				let function_data =
+				// We are only interested in functions (declarations and expressions).
+				if(node.type == 'FunctionDeclaration' || node.type == 'FunctionExpression')
 				{
-					start: node.range[0],
-					end: node.range[1],
-					body:
+					let containing_function = last_function;
+					last_function = node;
+
+					// Gather the data for this function in a abbreviated format.
+					let function_data =
 					{
-						start: node.body.range[0],
-						end: node.body.range[1]
+						start: node.range[0],
+						end: node.range[1],
+						body:
+						{
+							start: node.body.range[0],
+							end: node.body.range[1]
+						}
+					};
+
+					if(node.type == 'FunctionDeclaration')
+					{
+						function_data.type = 'declaration';
+						function_data.name = node.id.name;
+					}else{
+						// If it's not a FunctionDeclaration it must be a FunctionExpression.
+						function_data.type = 'expression';
 					}
-				};
 
-				if(node.type == 'FunctionDeclaration')
-				{
-					function_data.type = 'declaration';
-					function_data.name = node.id.name;
-				}else{
-					// If it's not a FunctionDeclaration it must be a FunctionExpression.
-					function_data.type = 'expression';
+					// Save the function data.
+					functions.push(function_data);
 				}
+			});
 
-				// Save the function data.
-				functions.push(function_data);
-			}
-		});
+			// Esprima doesn't return an ordered node list, so sort the functions based on starting position.
+			functions = functions.sort(function(a, b)
+			{
+				return a.start - b.start;
+			});
 
-		// Esprima doesn't return an ordered node list, so sort the functions based on starting position.
-		functions = functions.sort(function(a, b)
-		{
-			return a.start - b.start;
-		});
+		}	
+		catch (err) {
+			console.log("ESPrima error while parsing file")
+		}	
+		finally {
+			return functions;
+		}
 
-		return functions;
+		
 	};
 };
