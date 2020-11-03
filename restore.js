@@ -1,5 +1,5 @@
 const DBModel = require("./db");
-let res = DBModel.find({siteName:"https://www.mercadolivre.com.br/"}, async (err, res)=> {
+let res = DBModel.find({}, async (err, res)=> {
     if (err) {
         console.error(err);
     }

@@ -20,7 +20,7 @@ module.exports = function()
 {
 	this.run = function(settings, callback)
 	{
-		console.log(settings.url);
+		console.log("Starting dynamic analyzer");
 		// Start the analyzation process. Since this runs async, use a callback.
 		dynamic_analyzer(settings.directory, settings.html_path, settings.timeout, settings.scripts, settings.url, parse_results);
 

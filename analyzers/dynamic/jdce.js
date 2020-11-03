@@ -19,7 +19,7 @@ module.exports =
 			},
 
 
-		run: function(settings, callback)
+		run: async function(settings, callback)
 		{
 			// Log call is formatted 'identifier|file|start|end'.
 			let js_head_code = `
@@ -30,27 +30,25 @@ module.exports =
 		`;
 
 			let script_editors = [];
-			settings.scripts.forEach(function(logger_name)
-			{
-				return function(script_data)
-				{
-					// Create a new script editor instance and save it so we can change the source, and reset it afterwards.
-					let js = new JsEditor();
+			for (let i = 0; i < settings.scripts.length; i++) {
+				// Create a new script editor instance and save it so we can change the source, and reset it afterwards.
+				let js = new JsEditor();
 
-					// Save it, so we can access it later (and restore the original source).
-					script_editors[script_data.file] = js;
+				// Save it, so we can access it later (and restore the original source).
+				script_editors[settings.scripts[i].file] = js;
+				
+				console.log(`Generating AST for script (${i+1}/${settings.scripts.length})`)
+				js.load(settings.scripts[i].full_path, settings.scripts[i].source, settings.url);
 
-					js.load(script_data.full_path, script_data.source, settings.url);
-
-					// Add a log call to each function in this script. The only argument (a function) specifies the format.
-					js.add_log_calls(function(file, start, end)
+				// Add a log call to each function in this script. The only argument (a function) specifies the format.
+				js.add_log_calls((file, start, end) =>
 					{
-						return `console.warn('${logger_name}', '|', '${file}', '|', ${start}, '|', ${end});\n`;
-					});
+						return `console.warn('${this.settings.logger_name}', '|', '${file}', '|', ${start}, '|', ${end});\n`;
+					}
+				);
 
-					js.save();
-				}
-			}(this.settings.logger_name));
+				await js.save();
+			}
 
 			// Create a new Browser instance, and a list of all log calls.
 			let browser = new Browser(),

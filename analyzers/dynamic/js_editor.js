@@ -42,7 +42,7 @@ module.exports = function()
 		{
 			return;
 		}
-		await DBModel.update({siteName: this.url, 'modules.url': this.file_name}, {'modules.$.latestBody': this.source});
+		await DBModel.updateOne({siteName: this.url, 'modules.url': this.file_name}, {'modules.$.latestBody': this.source});
 	};
 
 
@@ -87,7 +87,7 @@ module.exports = function()
 
 		let last_function = null;
 
-		esprima.parse(source, {range: true}, function(node, meta)
+		esprima.parseModule(source, {range: true}, function(node, meta)
 		{
 			// We are only interested in functions (declarations and expressions).
 			if(node.type == 'FunctionDeclaration' || node.type == 'FunctionExpression')
