@@ -76,7 +76,7 @@ module.exports = function()
 			// Increment the offset with the length of the log call, so the next insertion is at the right place.
 			offset += log_call.length;
 		}
-		this.source = new_source;
+		this.source = `var functions_logged={};\n`+new_source;
 	};
 
 

@@ -8,7 +8,7 @@
 
 let path = require('path'),
 	JsEditor = require('./js_editor'),
-	Browser = require('./browser');
+	Browser = require('./browser_new');
 
 
 module.exports =
@@ -43,7 +43,7 @@ module.exports =
 				// Add a log call to each function in this script. The only argument (a function) specifies the format.
 				js.add_log_calls((file, start, end) =>
 					{
-						return `console.warn('${this.settings.logger_name}', '|', '${file}', '|', ${start}, '|', ${end});\n`;
+						return `if(functions_logged["${file}|${start}|${end}"]==null){functions_logged["${file}|${start}|${end}"]=true;console.warn('${this.settings.logger_name}', '|', '${file}', '|', ${start}, '|', ${end});}\n`;
 					}
 				);
 
@@ -56,7 +56,7 @@ module.exports =
 				logger_name = this.settings.logger_name;
 
 			// Open the web app, and deal with the results.
-			browser.start();
+			await browser.start();
 
 			browser.load(settings.url, settings.timeout, function(console_logs)
 			{

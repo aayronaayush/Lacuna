@@ -1,5 +1,16 @@
 const DBModel = require("./db");
-let res = DBModel.find({}, async (err, res)=> {
+const argument_parser = require('command-line-args'),
+options = argument_parser(
+	[
+        { name: 'url', type: String }
+    ]
+)
+
+if (!options["url"]) {
+    console.error("Please provide a url");
+    process.exit(1);
+}
+let res = DBModel.find({siteName: options["url"]}, async (err, res)=> {
     if (err) {
         console.error(err);
     }

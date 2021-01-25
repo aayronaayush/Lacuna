@@ -82,17 +82,17 @@ function build_function_graph(scripts, constructed_edge_value)
 	// TODO: Unmark this
 	// let i, j;
 
-	// for(i = 0; i < nodes.length; i++)
-	// {
-	// 	console.log(`Connecting nodes (${i+1}/${nodes.length})`);
-	// 	// Base caller -> this node.
-	// 	base_caller_node.connect( nodes[i], constructed_edge_value );
-
-	// 	for(j = 0; j < nodes.length; j++)
-	// 	{
-	// 		nodes[i].connect(nodes[j], constructed_edge_value);
-	// 	}
-	// }
+	for(i = 0; i < nodes.length; i++)
+	{
+		console.log(`Connecting nodes (${i+1}/${nodes.length})`);
+		// Base caller -> this node.
+		base_caller_node.connect( nodes[i], constructed_edge_value );
+		// only connect to the base_caller_node
+		// for(j = 0; j < nodes.length; j++)
+		// {
+		// 	nodes[i].connect(nodes[j], constructed_edge_value);
+		// }
+	}
 
 	// Add the base caller node last, so it doesn't connect to itself, above.
 	nodes.push(base_caller_node);
