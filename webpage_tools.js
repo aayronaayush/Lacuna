@@ -7,7 +7,7 @@ const path = require('path'),
       file_system = require('fs'),
       cheerio = require('cheerio'),
       esprima = require('esprima');
-
+const DBModel = require('./db');
 
 
 function is_valid_type(type)
@@ -79,7 +79,7 @@ function get_functions(entry)
 }
 
 
-let get_scripts = function(html_file, directory)
+let get_scripts = function(url)
 {
 	let scripts =
 	{
@@ -87,108 +87,46 @@ let get_scripts = function(html_file, directory)
 		async: [],
 		defered: []
 	};
-
-	let source = file_system.readFileSync(html_file).toString();
-	let html = cheerio.load(source);
-	let script_tags = html('script');
-	let id = 0;
-
-	// We don't want to add scripts multiple times, so keep track of which ones we already added.
-	let sources = [];
-
-	script_tags.each(function(index, element)
-	{
-		// We only want script tags with either no type or a valid type.
-		if(element.attribs.hasOwnProperty('type') && ! is_valid_type(element.attribs['type'])) return;
-
-		let entry =
-		{
-			id: id,				// id, for easier lookup.
-			type: null,			// 'inline', 'script'
-			source: null,		// source code
-			file: null,			// file name of the script (or HTML file name).
-			functions: null,	// list of functions and location
-			// Optional:
-			location: null,		// if type is 'inline', the offset of the code in the HTML document ({start, end}).
-		};
-
-		if(!element.attribs.hasOwnProperty('src'))
-		{
-			// Inline script.
-			let content = cheerio(element).html()
-			let start = source.indexOf(content);
-
-			if(start == -1)
-			{
-				throw 'webpage_tools error: can\'t find start location for inline script file ' + index;
+	
+	return new Promise((resolve, reject) => {
+		DBModel.findOne({siteName: url}, (err, res) => {
+			if (err || res == null) {
+				console.error("Error getting proxy url, ensure the url has been instrumented with the proxy");
+				process.exit(2);
 			}
+			else {
+				res.modules.forEach((module) => {
+					let entry = {
+						id: module.module_id,				// id, for easier lookup.
+						type: null,			// 'inline', 'script'
+						source: null,		// source code
+						file: null,			// file name of the script (or HTML file name).
+						functions: null,	// list of functions and location
+						// Optional:
+						location: null,		// if type is 'inline', the offset of the code in the HTML document ({start, end}).
+					};
+					entry.type = 'script';
+					entry.source = module.latestBody;
+					entry.file = module.url;
+					entry.full_path = module.url;
+					entry.file_indexed = entry.file;
+					entry.full_path_indexed = entry.full_path;
 
-			entry.type = 'inline';
+					try {
+						entry.functions = get_functions(entry);
+					} catch(exception) {
+						entry.functions = [];
+						console.error(exception);
+						// throw 'webpage_tools error: JS parse error: ' + exception;
+					}
+					// assume everything is in normal order
+					scripts.normal.push(entry);
 
-			entry.file = path.basename(html_file);
-			entry.full_path = html_file;
-			entry.location = {start: start, end: start + content.length};
-			entry.source = content;
-
-			entry.file_indexed = entry.file + '#' + id;
-			entry.full_path_indexed = entry.full_path + '#' + id;
-		}else{
-			// External script.
-			let src = element.attribs['src'];
-			let parsed_path = path.join( directory, src );
-
-			if( sources.indexOf(parsed_path) > -1 )
-			{
-				// Already added this script, don't add it again.
-				return;
-			}else{
-				sources.push( parsed_path );
+				})
+				resolve(scripts.normal);
 			}
-
-			entry.type = 'script';
-			entry.source = file_system.readFileSync( parsed_path ).toString();
-			entry.file = src;
-			entry.full_path = parsed_path;
-
-			entry.file_indexed = entry.file;
-			entry.full_path_indexed = entry.full_path;
-		}
-
-		try
-		{
-			entry.functions = get_functions(entry);
-		}catch(exception)
-		{
-			throw 'webpage_tools error: JS parse error: ' + exception;
-		}
-
-		// Check in what order this script should be executed.
-		let order = null;
-
-		if(element.attribs.hasOwnProperty('async') )
-		{
-			order = scripts.async;
-		}else if(element.attribs.hasOwnProperty('defer'))
-		{
-			order = scripts.defered;
-		}else{
-			order = scripts.normal;
-		}
-
-
-		// FIXME for ES6 modules
-		// Parse the script, and see if there are any import statements, then insert them before [entry].
-		// Do so recursive, because one can import a module within a module.
-
-
-		// Add the script.
-		order.push(entry);
-
-		id++;
+		});
 	});
-
-	// first normal scripts, then defered, then async.
-	return scripts.normal.concat(scripts.defered).concat(scripts.async);
 };
 
 

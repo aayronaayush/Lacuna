@@ -23,8 +23,8 @@ try
 {
 	options = argument_parser(
 	[
-		{ name: 'directory', type: String, defaultOption: true },
-
+		{ name: 'directory', type: String },
+		{ name: 'url', type: String, defaultOption: true },
 		{ name: 'index', type: String, alias: 'i' },
 
 		{ name: 'csv', type: Boolean, alias: 'c' },
@@ -53,13 +53,10 @@ try
 	process.exit(1);
 }
 
-
-if( ! options['directory'] )
-{
-	console.error('No directory specified.');
-	process.exit(2);
+if (!options['url']) {
+	console.error('No url specified.');
+ 	process.exit(2);
 }
-
 
 // Extend our default settings with the command line arguments (if available).
 let settings =
@@ -70,16 +67,12 @@ let settings =
 	csvfile: 'output.csv',
 	graph: false,
 	graphfile: 'output.dot',
-	analyzer: [],
+	analyzer: ['dynamic'],
 	noremove: false,
 	entire: false,
 	pace: false,
-	missteps: false
+	missteps: false,
 }.extend(options);
-
-
-// Add the complete HTML file path to the settings for easy access.
-settings.html_path = path.join(settings.directory, settings.index);
 
 
 // Create a CSV output instance.
@@ -98,45 +91,13 @@ let csv = new csv_factory(settings.csvfile, function(data)
 });
 
 
-// Check if directory and HTML file exist.
-if( ! file_system.existsSync(settings.directory) )
-{
-	let error_message = 'Directory ' + settings.directory + ' doesn\'t exist or isn\'t readable';
-
-	if(settings.csv)
-	{
-		csv.append({error: error_message});
-	}
-	console.error(error_message);
-	process.exit(3);
-}
-
-if( ! file_system.existsSync(settings.html_path) )
-{
-	let error_message = 'File ' + settings.html_path + ' doesn\'t exist or isn\'t readable';
-
-	if(settings.csv)
-	{
-		csv.append({error: error_message});
-	}
-	console.error(error_message);
-	process.exit(4);
-}
-
-
-if( settings.analyzer.length == 0 )
-{
-	console.log('Warning: no analyzer(s) specified. No functions will be removed. Use the --analyzer command line option to specify the algorithms to use.');
-	settings.noremove = true;
-}
-
-
 try
 {
 	// Run the JDCE.
 	jdce.run({
 		directory: settings.directory,
 		html_path: settings.html_path,
+		url: settings.url,
 		analyzer: settings.analyzer,
 		noremove: settings.noremove,
 		graph: settings.graph,
@@ -165,7 +126,11 @@ try
 
 			console.log(results);
 		}
+		console.log("Analysis complete");
 	});
+	// Keep waiting
+	process.stdin.resume();
+
 }catch(error)
 {
 	console.log('jdce.js error:');

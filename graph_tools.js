@@ -32,12 +32,17 @@ let base_caller_node = new Graph.Node(
 function build_function_graph(scripts, constructed_edge_value)
 {
 	let nodes = [];
-
+	let scriptCnt = 0;
 	// Create nodes for every function in every file.
 	scripts.forEach(function(script)
 	{
+		let functionCnt = 0;
+		if (script.functions.length == 0) {
+			console.log("No functions in script: ", scriptCnt+1);
+		}
 		script.functions.forEach(function(func)
 		{
+			console.log(`Adding function to graph for script (${scriptCnt+1}/${scripts.length}) function (${functionCnt+1}/${script.functions.length})`);
 			let value =
 			{
 				script_name: script.file,
@@ -67,22 +72,26 @@ function build_function_graph(scripts, constructed_edge_value)
 			let node = new Graph.Node(value);
 
 			nodes.push(node);
+			functionCnt+=1;
 		});
+		scriptCnt+=1;
 	});
 
 	// Now that we got all nodes, connect each to all other nodes.
 	// Also connect to yourself (i.e. for recursive functions).
-	let i, j;
+	// TODO: Unmark this
+	// let i, j;
 
 	for(i = 0; i < nodes.length; i++)
 	{
+		console.log(`Connecting nodes (${i+1}/${nodes.length})`);
 		// Base caller -> this node.
 		base_caller_node.connect( nodes[i], constructed_edge_value );
-
-		for(j = 0; j < nodes.length; j++)
-		{
-			nodes[i].connect(nodes[j], constructed_edge_value);
-		}
+		// only connect to the base_caller_node
+		// for(j = 0; j < nodes.length; j++)
+		// {
+		// 	nodes[i].connect(nodes[j], constructed_edge_value);
+		// }
 	}
 
 	// Add the base caller node last, so it doesn't connect to itself, above.

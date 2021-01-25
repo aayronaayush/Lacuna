@@ -12,8 +12,8 @@ const Graph = require('./graph'),
       file_system = require('fs'),
       path = require('path'),
       webpage_tools = require('./webpage_tools'),
-      async_loop = require('./async_retval_loop');
-
+      async_loop = require('./async_retval_loop'),
+	  DBModel = require('./db');
 
 
 const CONSTRUCTED_EDGE = {name: 'constructed', value: 0x01};
@@ -73,7 +73,7 @@ function get_analyzer_data(filter)
 }
 
 
-function remove_uncalled_functions(nodes, directory, html_file)
+async function remove_uncalled_functions(nodes, url)
 {
 	// Create a map of files and the functions that need to be removed in that file.
 	let file, files = {};
@@ -84,13 +84,9 @@ function remove_uncalled_functions(nodes, directory, html_file)
 		    func = node.get_data();
 
 		// Fix null -> html file name.
-		if(func.script_name == null)
-		{
-			file = html_file;
-		}else{
-			file = path.join(directory, func.script_name);
-		}
-
+		
+		file = func.script_name
+		
 		if( ! files[file] )
 		{
 			files[file] = [];
@@ -103,17 +99,23 @@ function remove_uncalled_functions(nodes, directory, html_file)
 	{
 		if( files.hasOwnProperty(file) )
 		{
-			remove_functions_from_file(file, files[file]);
+			await remove_functions_from_file(file, files[file], url);
 		}
 	}
 }
 
 
-function remove_functions_from_file(file_name, functions)
+async function remove_functions_from_file(file_name, functions, url)
 {
 	// Retrieve the source.
-	let source_code = file_system.readFileSync(file_name).toString();
-
+	let source_code;
+	let res = await DBModel.findOne({siteName: url});
+	for (let i in res.modules) {
+		if (res.modules[i].url == file_name) {
+			source_code = res.modules[i].latestBody
+			break;
+		}
+	}
 	// Remove nested functions. If a function is nested within another function, it will get removed by the parents' removal.
 	functions = remove_nested_functions(functions);
 
@@ -139,9 +141,8 @@ function remove_functions_from_file(file_name, functions)
 		// Decrement offset with what we added (insert)
 		offset -= insert.length;
 	});
-
-	// Now, write the new source to the file.
-	file_system.writeFileSync(file_name, source_code);
+	// Now, write the new source to db.
+	await DBModel.update({siteName: url, 'modules.url': file_name}, {'modules.$.latestBody': source_code});
 }
 
 
@@ -174,7 +175,7 @@ function remove_nested_functions(functions)
 
 module.exports =
 {
-	run: function(settings, callback)
+	run: async function(settings, callback)
 	{
 		// Keep a timer, so we know how long the tool took to run.
 		let start_time = process.hrtime();
@@ -192,14 +193,13 @@ module.exports =
 
 
 		// Retrieve all scripts in this page (ordered based on execution order).
-		let scripts = webpage_tools.get_scripts( settings.html_path, settings.directory );
-
+		let scripts = await webpage_tools.get_scripts( settings.url );
 		stats.js_files = scripts.length;
 
 		// Create a graph with each function as a node, plus the base caller node.
 		// Connect them all together from the start, using the CONSTRUCTED_EDGE type.
 		let nodes = GraphTools.build_function_graph(scripts, CONSTRUCTED_EDGE.value);
-
+		console.log("Finished creating function graph");
 		// The number of functions is the number of nodes in the graph, minus one for the base caller node.
 		stats.function_count = nodes.length - 1;
 
@@ -211,13 +211,13 @@ module.exports =
 		{
 			directory: settings.directory,
 			html_path: settings.html_path,
-			html_file: path.basename(settings.html_path),
 			scripts: scripts,
 			nodes: nodes,
 			base_node: GraphTools.get_base_caller_node(nodes),
 			fingerprints: analyzers.fingerprints,
 			timeout: settings.timeout,
 			pace: settings.pace,
+			url: settings.url,
 			error_handler: function(name, message)
 			{
 				if(settings.missteps)
@@ -230,7 +230,7 @@ module.exports =
 		if(analyzers.functions.length > 0)
 		{
 			// Run each analyzer in turn, letting it edit the graph (mark edges).
-			async_loop(analyzers.functions, analyzer_settings, function(analyzer_run_info)
+			async_loop(analyzers.functions, analyzer_settings, async function(analyzer_run_info)
 			{
 				stats.analyzer_info = analyzer_run_info.reduce(function(acc, current)
 				{
@@ -239,16 +239,16 @@ module.exports =
 				}, []).join(';');
 
 				// Once we are done with analyzing the source, start processing the marked graph.
-				process_marked_graph();
+				await process_marked_graph();
 			});
 		}else{
 			// If there are no analyzers set, just process the graph.
 			// This is useful for e.g. call graph image generation.
-			process_marked_graph();
+			await process_marked_graph();
 		}
 
 
-		function process_marked_graph()
+		async function process_marked_graph()
 		{
 			// Once we're done with all the analyzers, remove any edge that was constructed.
 			if(!settings.noremove)
@@ -259,7 +259,7 @@ module.exports =
 				let disconnected_nodes = GraphTools.get_disconnected_nodes(nodes);
 
 				// Do the actual work: remove all nodes that are disconnected (= functions without incoming edges = uncalled functions).
-				remove_uncalled_functions(disconnected_nodes, settings.directory, settings.html_path);
+				await remove_uncalled_functions(disconnected_nodes, settings.url);
 
 				// The number of removed functions equals the number of nodes without any incoming edges (a disconnected node).
 				// The base caller node is never disconnected, so don't subtract from this.

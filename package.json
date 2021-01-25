@@ -1,7 +1,12 @@
 {
   "devDependencies": {
-	"command-line-args": "4.*",
-    "esprima": "3.*",
-	"cheerio": "0.22.*"
+    "cheerio": "0.22.*",
+    "command-line-args": "4.*"
+  },
+  "dependencies": {
+    "chromedriver": "^86.0.0",
+    "esprima": "^4.0.1",
+    "geckodriver": "^1.20.0",
+    "mongoose": "^5.10.15"
   }
 }

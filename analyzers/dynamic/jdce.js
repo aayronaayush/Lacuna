@@ -7,9 +7,8 @@
 
 
 let path = require('path'),
-	HtmlEditor = require('./html_editor'),
 	JsEditor = require('./js_editor'),
-	Browser = require('./browser');
+	Browser = require('./browser_new');
 
 
 module.exports =
@@ -20,7 +19,7 @@ module.exports =
 			},
 
 
-		run: function(settings, callback)
+		run: async function(settings, callback)
 		{
 			// Log call is formatted 'identifier|file|start|end'.
 			let js_head_code = `
@@ -30,44 +29,26 @@ module.exports =
 			};
 		`;
 
-			// Create a new HTML editor instance. We'll reset the HTML source later.
-			let html = new HtmlEditor();
-
-			// Retrieve HTML source.
-			html.load(settings.html_path);
-
-			// Add the script tag to the begining of the <head> tag.
-			html.add( '<script>' + js_head_code + '</script>', html.location.HEAD_FIRST );
-
-			// Overwrite the old source.
-			html.save();
-
 			let script_editors = [];
-			settings.scripts.forEach(function(logger_name)
-			{
-				return function(script_data)
-				{
-					// Only deal with .js files, HTML file won't parse right.
-					if(script_data.file.split('.').pop() == 'js')
+			for (let i = 0; i < settings.scripts.length; i++) {
+				// Create a new script editor instance and save it so we can change the source, and reset it afterwards.
+				let js = new JsEditor();
+
+				// Save it, so we can access it later (and restore the original source).
+				script_editors[settings.scripts[i].file] = js;
+				
+				console.log(`Generating AST for script (${i+1}/${settings.scripts.length})`)
+				js.load(settings.scripts[i].full_path, settings.scripts[i].source, settings.url);
+
+				// Add a log call to each function in this script. The only argument (a function) specifies the format.
+				js.add_log_calls((file, start, end) =>
 					{
-						// Create a new script editor instance and save it so we can change the source, and reset it afterwards.
-						let js = new JsEditor();
-
-						// Save it, so we can access it later (and restore the original source).
-						script_editors[script_data.file] = js;
-
-						js.load(script_data.full_path, script_data.source);
-
-						// Add a log call to each function in this script. The only argument (a function) specifies the format.
-						js.add_log_calls(function(file, start, end)
-						{
-							return `console.log("${logger_name}", "|", "${file}", "|", ${start}, "|", ${end})`;
-						});
-
-						js.save();
+						return `if(functions_logged["${file}|${start}|${end}"]==null){functions_logged["${file}|${start}|${end}"]=true;console.warn('${this.settings.logger_name}', '|', '${file}', '|', ${start}, '|', ${end});}\n`;
 					}
-				}
-			}(this.settings.logger_name));
+				);
+
+				await js.save();
+			}
 
 			// Create a new Browser instance, and a list of all log calls.
 			let browser = new Browser(),
@@ -75,9 +56,9 @@ module.exports =
 				logger_name = this.settings.logger_name;
 
 			// Open the web app, and deal with the results.
-			browser.start();
+			await browser.start();
 
-			browser.load(settings.html_path, settings.timeout, function(console_logs)
+			browser.load(settings.url, settings.timeout, function(console_logs)
 			{
 				let logs = parse_logs(console_logs, logger_name);
 				cleanup();
@@ -92,17 +73,17 @@ module.exports =
 				logs.forEach(function(log)
 				{
 					// logs are formatted 'identifier|file|start|stop'.
-					let regex = /([^\|]+) \| ([^\|]+) \| ([0-9]+) \| ([0-9]+)/g;
+					let regex = /([^\|]+) "([^\|]+)" "\|" "([^\|]+)" "\|" ([^\|]+) "\|" ([^\|]+)/g;
 					let result = regex.exec(log);	// [data, logger_name, file_name, start, end]
 					// Only look for logs that start with our log identifier.
-					if(result === null ||  result[1] != logger_name)
+					if(result === null ||  result[2] != logger_name)
 					{
 						return;
 					}
 
-					let file = result[2],
-						start = result[3],
-						end = result[4];
+					let file = result[3],
+						start = result[4],
+						end = result[5];
 
 					if( ! logs_per_file.hasOwnProperty(file) )
 					{
@@ -125,7 +106,6 @@ module.exports =
 							});
 					}
 				});
-
 				return logs_per_file;
 			}
 
@@ -143,9 +123,6 @@ module.exports =
 					}
 				}
 
-				// Remove inserted script tag from the HTML source.
-				html.restore();
-
 				// Close the browser.
 				browser.stop();
 			}
@@ -155,21 +132,11 @@ module.exports =
 			function fix_results(results)
 			{
 				let files = [];
-
 				settings.scripts.forEach(function(script)
 				{
-					let correct_name = script.file;
-
-					for(let file in results)
-					{
-						if(results.hasOwnProperty(file) )
-						{
-							if( path.join(settings.directory, correct_name) == file )
-							{
-								files[correct_name] = results[file];
-							}
-						}
-					}
+					let correct_name = script.file;		
+					files[correct_name] = results[correct_name];
+						
 				});
 				return files;
 			}
@@ -178,8 +145,8 @@ module.exports =
 				for (const file in script_editors) {
 					if (script_editors[file].functions != null) {
 						const [functionsNotCalledInFile, totalWordCount] = get_functions_not_called_in_file(results, file)
-						console.log(`In ${file}, there were ${script_editors[file].functions.length} functions in total. ${functionsNotCalledInFile.length} were removed, saving ${totalWordCount} bytes. The functions removed were:`);
-						console.log(functionsNotCalledInFile);
+						console.log(`In ${file}, there were ${script_editors[file].functions.length} functions in total. ${functionsNotCalledInFile.length} were removed, saving ${totalWordCount} bytes.`);
+
 					}
 				}
 			}
@@ -189,9 +156,11 @@ module.exports =
 				const functionsNotCalledFilter = (file) => {
 					// Create a function_start_map to store the start position of all the functions that were called. The idea is that two functions can't start at the same position
 					let function_start_map = {};
-					results[file].forEach((entry) => {
-						function_start_map[entry.start] = 1;
-					});
+					if (results[file] != null) {
+						results[file].forEach((entry) => {
+							function_start_map[entry.start] = 1;
+						});
+					}
 
 					// Return the filter function which uses this function start map
 					return (entry) => {

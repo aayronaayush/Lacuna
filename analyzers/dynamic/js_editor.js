@@ -11,7 +11,7 @@ require('./native_extentions');
 
 let file_system = require('fs'),
     esprima = require('esprima');
-
+const DBModel = require('../../db');
 
 
 module.exports = function()
@@ -20,39 +20,38 @@ module.exports = function()
 	this.source = null;
 	this.original_source = null;
 	this.functions = null;
- 
+	this.url = null;
 
 
-	this.load = function(file_name, source)
+	this.load = function(file_name, source, url)
 	{
 		if(file_name)
 		{
 			this.file_name = file_name;
 			this.original_source = this.source = source;
-
+			this.url = url
 			// Also retrieve and save a list of all functions in this script file.
 			this.functions = this.get_functions( this.source );
 		}
 	};
 
 
-	this.save = function()
+	this.save = async function()
 	{
 		if(this.file_name == null)
 		{
 			return;
 		}
-
-		file_system.writeFileSync( this.file_name, this.source );
+		await DBModel.updateOne({siteName: this.url, 'modules.url': this.file_name}, {'modules.$.latestBody': this.source});
 	};
 
 
 
-	this.restore = function()
+	this.restore = async function()
 	{
 		this.source = this.original_source;
 
-		this.save();
+		await this.save();
 	};
 
 
@@ -77,8 +76,7 @@ module.exports = function()
 			// Increment the offset with the length of the log call, so the next insertion is at the right place.
 			offset += log_call.length;
 		}
-
-		this.source = new_source;
+		this.source = `var functions_logged={};\n`+new_source;
 	};
 
 
@@ -88,47 +86,56 @@ module.exports = function()
 		let functions = [];
 
 		let last_function = null;
-
-		esprima.parse(source, {range: true}, function(node, meta)
-		{
-			// We are only interested in functions (declarations and expressions).
-			if(node.type == 'FunctionDeclaration' || node.type == 'FunctionExpression')
+		
+		try {
+			esprima.parseModule(source, {range: true}, function(node, meta)
 			{
-				let containing_function = last_function;
-				last_function = node;
-
-				// Gather the data for this function in a abbreviated format.
-				let function_data =
+				// We are only interested in functions (declarations and expressions).
+				if(node.type == 'FunctionDeclaration' || node.type == 'FunctionExpression')
 				{
-					start: node.range[0],
-					end: node.range[1],
-					body:
+					let containing_function = last_function;
+					last_function = node;
+
+					// Gather the data for this function in a abbreviated format.
+					let function_data =
 					{
-						start: node.body.range[0],
-						end: node.body.range[1]
+						start: node.range[0],
+						end: node.range[1],
+						body:
+						{
+							start: node.body.range[0],
+							end: node.body.range[1]
+						}
+					};
+
+					if(node.type == 'FunctionDeclaration')
+					{
+						function_data.type = 'declaration';
+						function_data.name = node.id.name;
+					}else{
+						// If it's not a FunctionDeclaration it must be a FunctionExpression.
+						function_data.type = 'expression';
 					}
-				};
 
-				if(node.type == 'FunctionDeclaration')
-				{
-					function_data.type = 'declaration';
-					function_data.name = node.id.name;
-				}else{
-					// If it's not a FunctionDeclaration it must be a FunctionExpression.
-					function_data.type = 'expression';
+					// Save the function data.
+					functions.push(function_data);
 				}
+			});
 
-				// Save the function data.
-				functions.push(function_data);
-			}
-		});
+			// Esprima doesn't return an ordered node list, so sort the functions based on starting position.
+			functions = functions.sort(function(a, b)
+			{
+				return a.start - b.start;
+			});
 
-		// Esprima doesn't return an ordered node list, so sort the functions based on starting position.
-		functions = functions.sort(function(a, b)
-		{
-			return a.start - b.start;
-		});
+		}	
+		catch (err) {
+			console.log("ESPrima error while parsing file")
+		}	
+		finally {
+			return functions;
+		}
 
-		return functions;
+		
 	};
 };
