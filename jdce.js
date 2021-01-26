@@ -13,7 +13,8 @@ const Graph = require('./graph'),
       path = require('path'),
       webpage_tools = require('./webpage_tools'),
       async_loop = require('./async_retval_loop'),
-	  DBModel = require('./db');
+	  DBModelMySql = require('./db_mysql');
+
 
 
 const CONSTRUCTED_EDGE = {name: 'constructed', value: 0x01};
@@ -104,18 +105,11 @@ async function remove_uncalled_functions(nodes, url)
 	}
 }
 
-
 async function remove_functions_from_file(file_name, functions, url)
 {
 	// Retrieve the source.
-	let source_code;
-	let res = await DBModel.findOne({siteName: url});
-	for (let i in res.modules) {
-		if (res.modules[i].url == file_name) {
-			source_code = res.modules[i].latestBody
-			break;
-		}
-	}
+	let source_code = await DBModelMySql.getFile(file_name, url);
+
 	// Remove nested functions. If a function is nested within another function, it will get removed by the parents' removal.
 	functions = remove_nested_functions(functions);
 
@@ -142,7 +136,7 @@ async function remove_functions_from_file(file_name, functions, url)
 		offset -= insert.length;
 	});
 	// Now, write the new source to db.
-	await DBModel.update({siteName: url, 'modules.url': file_name}, {'modules.$.latestBody': source_code});
+	await DBModelMySql.writeAndPersist(file_name, url, source_code);
 }
 
 

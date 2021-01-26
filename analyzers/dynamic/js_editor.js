@@ -11,7 +11,7 @@ require('./native_extentions');
 
 let file_system = require('fs'),
     esprima = require('esprima');
-const DBModel = require('../../db');
+const DBModelMySql = require('../../db_mysql');
 
 
 module.exports = function()
@@ -42,7 +42,7 @@ module.exports = function()
 		{
 			return;
 		}
-		await DBModel.updateOne({siteName: this.url, 'modules.url': this.file_name}, {'modules.$.latestBody': this.source});
+		await DBModelMySql.writeAndPersist(this.file_name, this.url, this.source);
 	};
 
 
