@@ -34,6 +34,17 @@ const getFile = async (requestUrl, initiatingUrl) => {
     }
 }
 
+const getAllFiles = async (initiatingUrl) => {
+    const rows = await con.query('SELECT * FROM cachedPages WHERE initiatingUrl=? AND requestUrl=? AND type = ?', [initiatingUrl, requestUrl, "application/javascript"]);
+    rows.map((val) => 
+        ({
+            source: getFile(val.requestUrl, val.initiatingUrl),
+            url: val.requestUrl
+        })
+    );
+    return rows;
+}
+
 const persistFile = (requestUrl) => {
     // Only need to update if we have something in the cache that's not already in db
     if (pageCache.hasOwnProperty(requestUrl)) {
@@ -53,4 +64,4 @@ const writeAndPersist = async (requestUrl, initiatingUrl, data) => {
     persistFile(requestUrl);
 }
 
-module.exports = {getFilePaths, getFile, persistFile, writeToFile, writeAndPersist}
+module.exports = {getFilePaths, getFile, persistFile, writeToFile, writeAndPersist, getAllFiles}
