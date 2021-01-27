@@ -6,8 +6,9 @@
 const path = require('path'),
       file_system = require('fs'),
       cheerio = require('cheerio'),
-      esprima = require('esprima');
-const DBModel = require('./db');
+	  esprima = require('esprima');
+	  DBModelMySql = require('./db_mysql');
+
 
 
 function is_valid_type(type)
@@ -89,43 +90,40 @@ let get_scripts = function(url)
 	};
 	
 	return new Promise((resolve, reject) => {
-		DBModel.findOne({siteName: url}, (err, res) => {
-			if (err || res == null) {
-				console.error("Error getting proxy url, ensure the url has been instrumented with the proxy");
-				process.exit(2);
-			}
-			else {
-				res.modules.forEach((module) => {
-					let entry = {
-						id: module.module_id,				// id, for easier lookup.
-						type: null,			// 'inline', 'script'
-						source: null,		// source code
-						file: null,			// file name of the script (or HTML file name).
-						functions: null,	// list of functions and location
-						// Optional:
-						location: null,		// if type is 'inline', the offset of the code in the HTML document ({start, end}).
-					};
-					entry.type = 'script';
-					entry.source = module.latestBody;
-					entry.file = module.url;
-					entry.full_path = module.url;
-					entry.file_indexed = entry.file;
-					entry.full_path_indexed = entry.full_path;
+		res = await DBModelMySql.getAllFiles(url);
+		if (res == null || res.length == 0) {
+			console.error("Error getting proxy url, ensure the url has been instrumented with the proxy");
+			process.exit(2);
+		}
+		else {
+			res.forEach((module) => {
+				let entry = {
+					type: null,			// 'inline', 'script'
+					source: null,		// source code
+					file: null,			// file name of the script (or HTML file name).
+					functions: null,	// list of functions and location
+					// Optional:
+					location: null,		// if type is 'inline', the offset of the code in the HTML document ({start, end}).
+				};
+				entry.type = 'script';
+				entry.source = module.source;
+				entry.file = module.url;
+				entry.full_path = module.url;
+				entry.file_indexed = entry.file;
+				entry.full_path_indexed = entry.full_path;
 
-					try {
-						entry.functions = get_functions(entry);
-					} catch(exception) {
-						entry.functions = [];
-						console.error(exception);
-						// throw 'webpage_tools error: JS parse error: ' + exception;
-					}
-					// assume everything is in normal order
-					scripts.normal.push(entry);
-
-				})
-				resolve(scripts.normal);
-			}
-		});
+				try {
+					entry.functions = get_functions(entry);
+				} catch(exception) {
+					entry.functions = [];
+					console.error(exception);
+					// throw 'webpage_tools error: JS parse error: ' + exception;
+				}
+				// assume everything is in normal order
+				scripts.normal.push(entry);
+			})
+			resolve(scripts.normal);
+		}
 	});
 };
 
