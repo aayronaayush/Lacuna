@@ -2,11 +2,11 @@ const mysql = require("mysql");
 const fs = require('fs');
 
 var con = mysql.createConnection({
-    host='127.0.0.1',
-    user:'russel',
-    port:9092,
-    password:'Comnets@2020',
-    db='deadcode',
+    host:'127.0.0.1',
+    user:'root',
+    port:3306,
+    password:'password',
+    db:'deadcode',
     autocommit:true
 });
 
@@ -17,32 +17,43 @@ con.connect(function(err) {
     console.log("Connected!");
 });
 
-const getFilePaths = async (url) => {
-    const rows = await con.query('SELECT requestUrl, updateFilePath FROM cachedPages WHERE initiatingUrl=?', [url]);
-    return rows;
+const getFilePath = async (requestUrl, initiatingUrl) => {
+    return new Promise((resolve, reject) => {
+        con.query('SELECT updateFilePath FROM deadcode.cachedPages WHERE initiatingUrl=? AND requestUrl=? LIMIT 1', [initiatingUrl, requestUrl], (err, rows) => {
+            resolve(rows[0].updateFilePath);
+        });
+    })
+}
+
+const retrieveAndCacheFile = (requestUrl, filePath) => {
+    let data = fs.readFileSync(filePath).toString();
+    pageCache[requestUrl] = {data, filePath};
+    return data
 }
 
 const getFile = async (requestUrl, initiatingUrl) => {
     if (pageCache.hasOwnProperty(requestUrl)) {
-        return pageCache[requestUrl];
+        return pageCache[requestUrl].data;
     }   else {
-        const rows  = await con.query('SELECT updateFilePath FROM cachedPages WHERE initiatingUrl=? AND requestUrl=? LIMIT 1', [initiatingUrl, requestUrl]);
-        let filePath = rows[0].updateFilePath;
-        let data = fs.readFileSync(filePath)
-        pageCache[requestUrl] = {data, filePath};
+        let filePath = await getFilePath(requestUrl, initiatingUrl);
+        let data = retrieveAndCacheFile(requestUrl, filePath);
         return data;
     }
 }
 
 const getAllFiles = async (initiatingUrl) => {
-    const rows = await con.query('SELECT * FROM cachedPages WHERE initiatingUrl=? AND requestUrl=? AND type = ?', [initiatingUrl, requestUrl, "application/javascript"]);
-    rows.map((val) => 
-        ({
-            source: getFile(val.requestUrl, val.initiatingUrl),
-            url: val.requestUrl
-        })
-    );
-    return rows;
+    return new Promise((resolve, reject) => {
+        con.query('SELECT * FROM deadcode.cachedPages WHERE initiatingUrl=?', [initiatingUrl], (err, rows) => {
+            let res = rows.map((val) => 
+                ({
+                    source: retrieveAndCacheFile(val.requestUrl, val.updateFilePath),
+                    url: val.requestUrl
+                })
+            );
+            resolve(res);
+        });
+    })
+    
 }
 
 const persistFile = (requestUrl) => {
@@ -64,4 +75,12 @@ const writeAndPersist = async (requestUrl, initiatingUrl, data) => {
     persistFile(requestUrl);
 }
 
-module.exports = {getFilePaths, getFile, persistFile, writeToFile, writeAndPersist, getAllFiles}
+const restoreAllFiles = async (initiatingUrl) => {
+    let res = await getAllFiles(initiatingUrl);
+    for (let i = 0 ; i < res.length ; i++) {
+        tmp = retrieveAndCacheFile("tmp", pageCache[res[i].url].filePath.split(".u")[0]+".c")
+        fs.writeFileSync(pageCache[res[i].url].filePath, tmp);
+    }
+    console.log("Complete Restore");
+}
+module.exports = {getFile, persistFile, writeToFile, writeAndPersist, getAllFiles, restoreAllFiles}

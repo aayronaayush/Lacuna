@@ -89,7 +89,7 @@ let get_scripts = function(url)
 		defered: []
 	};
 	
-	return new Promise((resolve, reject) => {
+	return new Promise(async (resolve, reject) => {
 		res = await DBModelMySql.getAllFiles(url);
 		if (res == null || res.length == 0) {
 			console.error("Error getting proxy url, ensure the url has been instrumented with the proxy");
