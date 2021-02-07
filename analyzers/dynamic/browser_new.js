@@ -15,9 +15,20 @@ module.exports = function()
 		
 	};
 
+    this.generateLogFile = function(length)
+    {
+        let fileName = "";
+        let hash = "qwertyuiopasdfghjklzxcvbnm1234567890";
+        for (var i = 0; i < length; i++) {
+            fileName += hash[Math.floor(Math.random()*hash.length)-1];
+        }
+        return fileName;
+    };
+
 	this.load = async function(url, timeout, success)
 	{
-		this.executeTestScript = spawn('java', ['-jar', __dirname+'/browser_run.jar', url, __dirname+'/logfile', __dirname+'/chrome_extension_test.crx'], {stdio: ['inherit', 'inherit', 'inherit']});
+        this.logFile = `${__dirname}/logs/${this.generateLogFile(10)}`;
+		this.executeTestScript = spawn('java', ['-jar', __dirname+'/browser_run.jar', url, this.logFile, __dirname+'/chrome_extension_test.crx'], {stdio: ['inherit', 'inherit', 'inherit']});
         this.executeTestScript.on('close', (code) => {
             console.log(`child process exited with code ${code}`);
             this.returnLogs(success);
@@ -27,7 +38,7 @@ module.exports = function()
 	this.returnLogs = function(success) {
         let logs = []
         const readInterface = readline.createInterface({
-            input: fs.createReadStream(__dirname+'/logfile'),
+            input: fs.createReadStream(this.logFile),
             console: false
         });
         readInterface.on('line', function(line) {

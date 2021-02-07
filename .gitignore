@@ -2,7 +2,8 @@ node_modules
 output.csv
 output.dot
 output.png
-
+data
+analyzers/dynamic/logs
 !analyzers/static/javascript-call-graph/node_modules
 !analyzers/nativecalls/javascript-call-graph/node_modules
 
