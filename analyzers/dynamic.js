@@ -22,7 +22,7 @@ module.exports = function()
 	{
 		console.log("Starting dynamic analyzer");
 		// Start the analyzation process. Since this runs async, use a callback.
-		dynamic_analyzer(settings.directory, settings.html_path, settings.timeout, settings.scripts, settings.url, parse_results);
+		dynamic_analyzer(settings.directory, settings.html_path, settings.timeout, settings.scripts, settings.url, settings.proxy, parse_results);
 
 
 		// Parse the results.
@@ -32,7 +32,7 @@ module.exports = function()
 			{
 				if(data.hasOwnProperty(file))
 				{
-					mark_nodes_in_file(file, data[file]);
+					mark_nodes_in_file(file, data[file] || []);
 				}
 			}
 
@@ -51,13 +51,13 @@ module.exports = function()
 
 					let called = GraphTools.find_node(loc, settings.nodes);
 
-
 					GraphTools.mark( settings.base_node, called, settings.fingerprint );
 				});
 			}catch(e)
 			{
-				settings.error_handler('dynamic', e);
-				callback(false);
+				// settings.error_handler('dynamic', e);
+				console.log("WE HAVE AN ERROR", e);
+				// callback(false);
 			}
 		};
 	};

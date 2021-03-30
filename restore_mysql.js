@@ -13,4 +13,3 @@ if (!options["url"]) {
 }
 
 DBModelMysql.restoreAllFiles(options["url"]);
-process.stdin.resume();

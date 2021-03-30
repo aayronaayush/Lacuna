@@ -89,42 +89,40 @@ let get_scripts = function(url)
 		defered: []
 	};
 	
-	return new Promise(async (resolve, reject) => {
-		res = await DBModelMySql.getAllFiles(url);
-		if (res == null || res.length == 0) {
-			console.error("Error getting proxy url, ensure the url has been instrumented with the proxy");
-			process.exit(2);
-		}
-		else {
-			res.forEach((module) => {
-				let entry = {
-					type: null,			// 'inline', 'script'
-					source: null,		// source code
-					file: null,			// file name of the script (or HTML file name).
-					functions: null,	// list of functions and location
-					// Optional:
-					location: null,		// if type is 'inline', the offset of the code in the HTML document ({start, end}).
-				};
-				entry.type = 'script';
-				entry.source = module.source;
-				entry.file = module.url;
-				entry.full_path = module.url;
-				entry.file_indexed = entry.file;
-				entry.full_path_indexed = entry.full_path;
+	res = DBModelMySql.getAllFiles(url);
+	if (res == null || res.length == 0) {
+		console.error("Error getting proxy url, ensure the url has been instrumented with the proxy");
+		process.exit(2);
+	}
+	else {
+		res.forEach((module) => {
+			let entry = {
+				type: null,			// 'inline', 'script'
+				source: null,		// source code
+				file: null,			// file name of the script (or HTML file name).
+				functions: null,	// list of functions and location
+				// Optional:
+				location: null,		// if type is 'inline', the offset of the code in the HTML document ({start, end}).
+			};
+			entry.type = 'script';
+			entry.source = module.source;
+			entry.file = module.url;
+			entry.full_path = module.url;
+			entry.file_indexed = entry.file;
+			entry.full_path_indexed = entry.full_path;
 
-				try {
-					entry.functions = get_functions(entry);
-				} catch(exception) {
-					entry.functions = [];
-					console.error(exception);
-					// throw 'webpage_tools error: JS parse error: ' + exception;
-				}
-				// assume everything is in normal order
-				scripts.normal.push(entry);
-			})
-			resolve(scripts.normal);
-		}
-	});
+			try {
+				entry.functions = get_functions(entry);
+			} catch(exception) {
+				entry.functions = [];
+				console.error("Error parsing: ", entry.file);
+				// throw 'webpage_tools error: JS parse error: ' + exception;
+			}
+			// assume everything is in normal order
+			scripts.normal.push(entry);
+		})
+		return scripts.normal;
+	}
 };
 
 

@@ -9,7 +9,7 @@
 let path = require('path'),
 	JsEditor = require('./js_editor'),
 	Browser = require('./browser_new');
-
+const DBModelMySql = require('../../db_mysql');
 
 module.exports =
 	{
@@ -36,10 +36,10 @@ module.exports =
 
 				// Save it, so we can access it later (and restore the original source).
 				script_editors[settings.scripts[i].file] = js;
-				
-				console.log(`Generating AST for script (${i+1}/${settings.scripts.length})`)
+				DBModelMySql.setFileStats(settings.scripts[i].full_path, {
+					totalSize: settings.scripts[i].source.length, 
+				});
 				js.load(settings.scripts[i].full_path, settings.scripts[i].source, settings.url);
-
 				// Add a log call to each function in this script. The only argument (a function) specifies the format.
 				js.add_log_calls((file, start, end) =>
 					{
@@ -47,7 +47,7 @@ module.exports =
 					}
 				);
 
-				await js.save();
+				js.save();
 			}
 
 			// Create a new Browser instance, and a list of all log calls.
@@ -58,7 +58,7 @@ module.exports =
 			// Open the web app, and deal with the results.
 			await browser.start();
 
-			browser.load(settings.url, settings.timeout, function(console_logs)
+			browser.load(settings.url, settings.proxy, function(console_logs)
 			{
 				let logs = parse_logs(console_logs, logger_name);
 				cleanup();
@@ -145,6 +145,10 @@ module.exports =
 				for (const file in script_editors) {
 					if (script_editors[file].functions != null) {
 						const [functionsNotCalledInFile, totalWordCount] = get_functions_not_called_in_file(results, file)
+						DBModelMySql.setFileStats(file, {
+							totalFunctions: script_editors[file].functions.length, 
+							updatedFunctions: (script_editors[file].functions.length-functionsNotCalledInFile.length)
+						});
 						console.log(`In ${file}, there were ${script_editors[file].functions.length} functions in total. ${functionsNotCalledInFile.length} were removed, saving ${totalWordCount} bytes.`);
 
 					}
@@ -180,6 +184,7 @@ module.exports =
 			function return_results(results)
 			{
 				results = fix_results(results);
+				// console.log(results);
 				print_analytics(results);
 				// Return statistics to caller.
 				callback( results );

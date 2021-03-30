@@ -1,0 +1,37 @@
+https://bordeaux.futurecdn.net/bordeaux.js 15:14561 "%c BORDEAUX " "background: #800020; color: #ffffff" "setEagerSpaceAllocation has been deprecated. This api call should be removed in the future. There is no replacement as this setting is now the default."
+https://bordeaux.futurecdn.net/bordeaux.js 15:14561 "%c BORDEAUX " "background: #800020; color: #ffffff" "setAssignSpaceOnLoad has been deprecated. This api call should be removed in the future."
+https://ads.pubmatic.com/AdServer/js/pwt/156007/3063/pwt.js 0:46134 "fun-hooks: referenced 'registerAdserver' but it was never created"
+https://api.rlcdn.com/api/identity?pid=2&rt=envelope - Failed to load resource: the server responded with a status of 451 ()
+https://api.rlcdn.com/api/identity/envelope?pid=12243 - Failed to load resource: the server responded with a status of 451 ()
+https://sync.go.sonobi.com/uc.js - Failed to load resource: the server responded with a status of 408 (Request Time-out)
+https://www.pcgamer.com/ - Access to XMLHttpRequest at 'https://ib.adnxs.com/ut/v3/prebid' from origin 'https://www.pcgamer.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+https://ib.adnxs.com/ut/v3/prebid - Failed to load resource: net::ERR_FAILED
+https://ib.adnxs.com/getuid?https%3A%2F%2Fpixel.servebom.com%2Fpartner%3Fcb%3D2237%26svc%3Dus%26id%3D23%2C26%2C29%26uid%3D$UID - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://purch-sync.go.sonobi.com/us?https://pixel.servebom.com/partner?cb=7456&svc=us&id=9&uid=[UID] - Failed to load resource: the server responded with a status of 408 (Request Time-out)
+https://www.pcgamer.com/ - Refused to execute script from 'https://pixel.servebom.com/partner?cb=&svc=us&id=11&uid=b33131d8-b4bb-4fbc-a605-bbf2bd3814f5' because its MIME type ('image/png') is not executable.
+javascript 0:19 Uncaught TypeError: Cannot read property 'enabled' of undefined
+https://ib.adnxs.com/getuid?https://pixel.servebom.com/partner?cb=3281&svc=us&id=25&uid=$UIDbrt25501615962186326885c2 - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://dmp.truoptik.com/0362536315099b06/sync.gif?cbk=https%3A%2F%2Fs.cpx.to%2Fsync&dsp=TRUOPTIK&fid=99f7690e-3e00-4e82-8bc2-4ba267bf3c96&fck=1a06f0c129883ba6&cbp=dsp_uid - Failed to load resource: the server responded with a status of 403 ()
+https://ib.adnxs.com/getuid?https%3A%2F%2Fps.eyeota.net%2Fmatch%3Fuid%3D%24UID%26bid%3D2cr76e1%26referrer_pid%3D1q6m4ou - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://secure.adnxs.com/getuid?https%3A%2F%2Fs.cpx.to%2Fan_fire%3Fapp_nexus_uid%3D%24UID%26pid%3D11319%26ref%3D%26hn_ver%3D11%26fid%3D99f7690e-3e00-4e82-8bc2-4ba267bf3c96 - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://ib.adnxs.com/getuid?https://id5-sync.com/c/123/2/4/5.gif?puid=$UID&gdpr=0&gdpr_consent= - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://bordeaux.futurecdn.net/bordeaux.js 15:14561 "%c BORDEAUX " "background: #800020; color: #ffffff" "setEagerSpaceAllocation has been deprecated. This api call should be removed in the future. There is no replacement as this setting is now the default."
+https://bordeaux.futurecdn.net/bordeaux.js 15:14561 "%c BORDEAUX " "background: #800020; color: #ffffff" "setAssignSpaceOnLoad has been deprecated. This api call should be removed in the future."
+https://ads.pubmatic.com/AdServer/js/pwt/156007/3063/pwt.js 0:46134 "fun-hooks: referenced 'registerAdserver' but it was never created"
+https://sync.go.sonobi.com/uc.js - Failed to load resource: the server responded with a status of 408 (Request Time-out)
+https://purch-sync.go.sonobi.com/us?https://pixel.servebom.com/partner?cb=3371&svc=us&id=9&uid=[UID] - Failed to load resource: the server responded with a status of 408 (Request Time-out)
+https://api.rlcdn.com/api/identity/envelope?pid=12243 - Failed to load resource: the server responded with a status of 451 ()
+https://ib.adnxs.com/getuid?https%3A%2F%2Fpixel.servebom.com%2Fpartner%3Fcb%3D767%26svc%3Dus%26id%3D23%2C26%2C29%26uid%3D$UID - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://www.pcgamer.com/ - Access to XMLHttpRequest at 'https://ib.adnxs.com/ut/v3/prebid' from origin 'https://www.pcgamer.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+https://ib.adnxs.com/ut/v3/prebid - Failed to load resource: net::ERR_FAILED
+https://api.rlcdn.com/api/identity?pid=2&rt=envelope - Failed to load resource: the server responded with a status of 451 ()
+https://hbopenbid.pubmatic.com/translator?source=index-client - Failed to load resource: net::ERR_CONNECTION_CLOSED
+https://www.pcgamer.com/ - Refused to execute script from 'https://pixel.servebom.com/partner?cb=&svc=us&id=11&uid=ad1cf78d-995f-47a2-a729-d53c7a0e22f5' because its MIME type ('image/png') is not executable.
+javascript 0:19 Uncaught TypeError: Cannot read property 'enabled' of undefined
+https://ib.adnxs.com/getuid?https://pixel.servebom.com/partner?cb=3865&svc=us&id=25&uid=$UIDbrt25511615962186351647d3 - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://www.pcgamer.com/ - Access to XMLHttpRequest at 'https://sync.teads.tv/wigo-no-slot' from origin 'https://www.pcgamer.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+https://sync.teads.tv/wigo-no-slot - Failed to load resource: net::ERR_FAILED
+https://dmp.truoptik.com/0362536315099b06/sync.gif?cbk=https%3A%2F%2Fs.cpx.to%2Fsync&dsp=TRUOPTIK&fid=39354082-8112-4d7c-a03a-3ba9132ee1f5&fck=1a06f3fe727bcb1d&cbp=dsp_uid - Failed to load resource: the server responded with a status of 403 ()
+https://ib.adnxs.com/getuid?https%3A%2F%2Fps.eyeota.net%2Fmatch%3Fuid%3D%24UID%26bid%3D2cr76e1%26referrer_pid%3D1q6m4ou - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://secure.adnxs.com/getuid?https%3A%2F%2Fs.cpx.to%2Fan_fire%3Fapp_nexus_uid%3D%24UID%26pid%3D11319%26ref%3D%26hn_ver%3D11%26fid%3D39354082-8112-4d7c-a03a-3ba9132ee1f5 - Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+https://ib.adnxs.com/getuid?https://id5-sync.com/c/123/2/4/5.gif?puid=$UID&gdpr=0&gdpr_consent= - Failed to load resource: the server responded with a status of 502 (Bad Gateway)

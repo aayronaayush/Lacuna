@@ -36,22 +36,22 @@ module.exports = function()
 	};
 
 
-	this.save = async function()
+	this.save = function()
 	{
 		if(this.file_name == null)
 		{
 			return;
 		}
-		await DBModelMySql.writeAndPersist(this.file_name, this.url, this.source);
+		DBModelMySql.writeAndPersist(this.file_name, this.url, this.source);
 	};
 
 
 
-	this.restore = async function()
+	this.restore = function()
 	{
 		this.source = this.original_source;
 
-		await this.save();
+		this.save();
 	};
 
 

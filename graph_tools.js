@@ -42,7 +42,6 @@ function build_function_graph(scripts, constructed_edge_value)
 		}
 		script.functions.forEach(function(func)
 		{
-			console.log(`Adding function to graph for script (${scriptCnt+1}/${scripts.length}) function (${functionCnt+1}/${script.functions.length})`);
 			let value =
 			{
 				script_name: script.file,
@@ -84,7 +83,6 @@ function build_function_graph(scripts, constructed_edge_value)
 
 	for(i = 0; i < nodes.length; i++)
 	{
-		console.log(`Connecting nodes (${i+1}/${nodes.length})`);
 		// Base caller -> this node.
 		base_caller_node.connect( nodes[i], constructed_edge_value );
 		// only connect to the base_caller_node
@@ -321,10 +319,10 @@ function traverse_graph(node, done)
 function get_connected_nodes(nodes)
 {
 	let base = get_base_caller_node(nodes);
-
+	
 	// Traverse the graph, starting from base.
 	let connected_nodes = traverse_graph( base );
-
+	console.log("Number of connected nodes", connected_nodes.length);
 	return connected_nodes;
 }
 
@@ -374,9 +372,10 @@ function find_node(info, nodes)
 
 function mark(node_from, node_to, value)
 {
+	// Issue is there are no edges in base caller node
 	let i,
-	    edges = node_from.get_edges();
-
+		edges = node_from.get_edges();
+		
 	for(i = 0; i < edges.length; i++)
 	{
 		edge = edges[i];
@@ -384,8 +383,11 @@ function mark(node_from, node_to, value)
 		if( edge.get_to().equals( node_to ) )
 		{
 			edge.add_type( value.value );
+			return;
 		}
 	}
+
+	node_from.connect(node_to, value);
 }
 
 

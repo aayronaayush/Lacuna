@@ -1,0 +1,41 @@
+https://bordeaux.futurecdn.net/bordeaux.js 15:14561 "%c BORDEAUX " "background: #800020; color: #ffffff" "setEagerSpaceAllocation has been deprecated. This api call should be removed in the future. There is no replacement as this setting is now the default."
+https://bordeaux.futurecdn.net/bordeaux.js 15:14561 "%c BORDEAUX " "background: #800020; color: #ffffff" "setAssignSpaceOnLoad has been deprecated. This api call should be removed in the future."
+https://vanilla.futurecdn.net/pcgamer/257432/media/js/main.min.js 27:5888 Uncaught TypeError: Cannot set property 'exports' of undefined
+https://ads.pubmatic.com/AdServer/js/pwt/156007/3063/pwt.js 0:46134 "fun-hooks: referenced 'registerAdserver' but it was never created"
+https://api.rlcdn.com/api/identity?pid=2&rt=envelope - Failed to load resource: the server responded with a status of 451 ()
+https://pixel.servebom.com/partner?cb=2832&uid=4394385435715753805brt25001615882603722116d8 - Failed to load resource: the server responded with a status of 400 ()
+https://www.pcgamer.com/ - Refused to execute script from 'https://pixel.servebom.com/partner?cb=&svc=us&id=11&uid=2d236886-c37f-406c-b06c-d56f0f84bc83' because its MIME type ('image/png') is not executable.
+https://api.rlcdn.com/api/identity/envelope?pid=12243 - Failed to load resource: the server responded with a status of 451 ()
+https://surfside.io/id/uid?https://simage2.pubmatic.com/AdServer/Pug?vcode=bz0yJnR5cGU9MSZjb2RlPTM0MjgmdGw9MTI5NjAw&piggybackCookie=$UID - Failed to load resource: the server responded with a status of 404 ()
+javascript 0:19 Uncaught TypeError: Cannot read property 'enabled' of undefined
+https://ads.playground.xyz/usersync/apn?https://simage2.pubmatic.com/AdServer/Pug?vcode=bz0yJnR5cGU9MSZjb2RlPTM0MDEmdGw9NDMyMDA=&piggybackCookie=$UID - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://pcgamer-gb.pcgamer.com/get_site_data?account_id=200&href=https%3A%2F%2Fwww.pcgamer.com%2F&requestUUID=a2275305-26c7-4487-8974-af701c959c80-1615882609212 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ad.doubleclick.net/ddm/ad/xucep/bf/;ord=1615882609216? - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://futureplc-com.videoplayerhub.com/galleryplayer.js - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://p.cpx.to/p/11319/px.js - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ml314.com/tag.aspx?162 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ad.doubleclick.net/ddm/ad/wcihwg/gcjyaf/lagtwjjx/;ord=1615882619751? - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ml314.com/utsync.ashx?eid=50052&et=0&fp=2MRVPCxO459CzLHkcmLW-dc0FE-agEIhOMqHiFns0fLU&gdpr=0&gdpr_consent=&return=https%3A%2F%2Fps.eyeota.net%2Fmatch%3Fbid%3Dr8hrb20%26uid%3Dnil%26dc_rc%3D2%26dc_mr%3D5%26dc_orig%3Dd6m4omv%26 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ad.doubleclick.net/ddm/ad/zyptwmxy/;ord=1615882630270? - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://bordeaux.futurecdn.net/bordeaux.js 15:14561 "%c BORDEAUX " "background: #800020; color: #ffffff" "setEagerSpaceAllocation has been deprecated. This api call should be removed in the future. There is no replacement as this setting is now the default."
+https://bordeaux.futurecdn.net/bordeaux.js 15:14561 "%c BORDEAUX " "background: #800020; color: #ffffff" "setAssignSpaceOnLoad has been deprecated. This api call should be removed in the future."
+https://vanilla.futurecdn.net/pcgamer/257432/media/js/main.min.js 27:5888 Uncaught TypeError: Cannot set property 'exports' of undefined
+https://ads.pubmatic.com/AdServer/js/pwt/156007/3063/pwt.js 0:46134 "fun-hooks: referenced 'registerAdserver' but it was never created"
+https://api.rlcdn.com/api/identity?pid=2&rt=envelope - Failed to load resource: the server responded with a status of 451 ()
+https://id.rlcdn.com/709414.gif?gdpr=0 - Failed to load resource: the server responded with a status of 451 ()
+https://www.pcgamer.com/ - Refused to execute script from 'https://pixel.servebom.com/partner?cb=&svc=us&id=11&uid=041c2fcc-b7e1-4739-8b51-88658ff993cf' because its MIME type ('image/png') is not executable.
+https://api.rlcdn.com/api/identity/envelope?pid=12243 - Failed to load resource: the server responded with a status of 451 ()
+https://surfside.io/id/uid?https://simage2.pubmatic.com/AdServer/Pug?vcode=bz0yJnR5cGU9MSZjb2RlPTM0MjgmdGw9MTI5NjAw&piggybackCookie=$UID - Failed to load resource: the server responded with a status of 404 ()
+https://ums.acuityplatform.com/bum?tpid=29&uid=a3f92483-9cb5-4059-bfe2-b39cddbf633a&bidswitch_ssp_id=sonobi - Failed to load resource: net::ERR_CONNECTION_RESET
+https://ads.playground.xyz/usersync/apn?https://simage2.pubmatic.com/AdServer/Pug?vcode=bz0yJnR5cGU9MSZjb2RlPTM0MDEmdGw9NDMyMDA=&piggybackCookie=$UID - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+javascript 0:19 Uncaught TypeError: Cannot read property 'enabled' of undefined
+https://dclk-match.dotomi.com/match/bounce/current?networkId=14000&version=1&google_gid=CAESEOiABCJrpff9I33uKOzKTrA&google_cver=1&google_push=AQvitUJe1y3j2ByJakfgsg3Id2CWB6A0dROlfXKsFcZWoYorg5WfaSVz3CJ1d1U-MN2r_tcm-zfxYRuyivq66kFW4w7yDETFpVmx - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://pixel.servebom.com/partner?cb=6661&uid=3936977622093607482brt25001615882604119997c2 - Failed to load resource: the server responded with a status of 400 ()
+https://pcgamer-gb.pcgamer.com/get_site_data?account_id=200&href=https%3A%2F%2Fwww.pcgamer.com%2F&requestUUID=bca5e2be-a3b0-49c1-abcf-bbee5803f9c5-1615882616949 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ad.doubleclick.net/ddm/ad/nb/;ord=1615882616953? - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://futureplc-com.videoplayerhub.com/galleryplayer.js - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://p.cpx.to/p/11319/px.js - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ml314.com/tag.aspx?162 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ad.doubleclick.net/ddm/ad/la/gxsotr/zp/nbccpa/hdqsqrs/;ord=1615882628657? - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ml314.com/utsync.ashx?eid=50052&et=0&fp=2bQzZfVyw0kKADQNyX_ZjPXNKdJPREDmjPCUjzVMf_p4&gdpr=0&gdpr_consent=&return=https%3A%2F%2Fps.eyeota.net%2Fmatch%3Fbid%3Dr8hrb20%26uid%3Dnil%26dc_rc%3D2%26dc_mr%3D5%26dc_orig%3Dd6m4omv%26 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+https://ad.doubleclick.net/ddm/ad/sha/lwdhhtqpqmz/primx/;ord=1615882639177? - Failed to load resource: net::ERR_NAME_NOT_RESOLVED

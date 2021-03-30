@@ -4,7 +4,7 @@ const jdce = require('./jdce.js');
 
 
 
-module.exports = function(directory, html_path, timeout, scripts, url, callback)
+module.exports = function(directory, html_path, timeout, scripts, url, proxy, callback)
 {
 	jdce.run(
 	{
@@ -12,6 +12,7 @@ module.exports = function(directory, html_path, timeout, scripts, url, callback)
 		html_path: html_path,
 		timeout: timeout,
 		scripts: scripts,
-		url: url
+		url: url,
+		proxy: proxy
 	}, callback);
 };

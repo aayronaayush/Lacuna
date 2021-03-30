@@ -6,4 +6,8 @@ data
 analyzers/dynamic/logs
 !analyzers/static/javascript-call-graph/node_modules
 !analyzers/nativecalls/javascript-call-graph/node_modules
-
+scripts
+matteo_proxy.py
+update_proxy.py
+db_mysql.js
+restore_mysql.js

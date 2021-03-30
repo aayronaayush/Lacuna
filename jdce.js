@@ -73,8 +73,8 @@ function get_analyzer_data(filter)
 	return { functions: analyzers, fingerprints: fingerprints };
 }
 
-
-async function remove_uncalled_functions(nodes, url)
+// Pass here the nodes of the uncalled functions
+function remove_uncalled_functions(nodes, url)
 {
 	// Create a map of files and the functions that need to be removed in that file.
 	let file, files = {};
@@ -100,18 +100,19 @@ async function remove_uncalled_functions(nodes, url)
 	{
 		if( files.hasOwnProperty(file) )
 		{
-			await remove_functions_from_file(file, files[file], url);
+			remove_functions_from_file(file, files[file], url);
 		}
 	}
+
 }
 
-async function remove_functions_from_file(file_name, functions, url)
+function remove_functions_from_file(file_name, functions, url)
 {
-	// Retrieve the source.
-	let source_code = await DBModelMySql.getFile(file_name, url);
 
+	// Retrieve the source.
+	let source_code = DBModelMySql.getFile(file_name, url);
 	// Remove nested functions. If a function is nested within another function, it will get removed by the parents' removal.
-	functions = remove_nested_functions(functions);
+	functions = remove_nested_functions(file_name, functions);
 
 	// Sort all functions based on start/end location. If we don't, removing with an offset won't work.
 	functions = functions.sort(function(a, b)
@@ -135,32 +136,33 @@ async function remove_functions_from_file(file_name, functions, url)
 		// Decrement offset with what we added (insert)
 		offset -= insert.length;
 	});
+	// console.log(file_name, source_code)
 	// Now, write the new source to db.
-	await DBModelMySql.writeAndPersist(file_name, url, source_code);
+	DBModelMySql.setFileStats(file_name, {updatedSize: source_code.length});
+	DBModelMySql.writeAndPersist(file_name, url, source_code);
 }
 
 
-function remove_nested_functions(functions)
+function remove_nested_functions(file_name, functions)
 {
 	let reduced = [];
-
-	functions.forEach(function(func)
-	{
+	for (var i = 0; i < functions.length; i++) {
 		let nested = false;
-
-		functions.forEach(function(test)
-		{
-			if(func.start > test.start && func.end < test.end)
+		let nestingFunction = null;
+		for (var j = 0; j < functions.length; j++) {
+			if(functions[i].start > functions[j].start && functions[i].end < functions[j].end)
 			{
 				nested = true;
+				nestingFunction = functions[j];
+				break;
 			}
-		});
-
+		}
+	
 		if(nested == false)
 		{
-			reduced.push( func );
+			reduced.push( functions[i] );
 		}
-	});
+	}
 
 	return reduced;
 }
@@ -169,7 +171,7 @@ function remove_nested_functions(functions)
 
 module.exports =
 {
-	run: async function(settings, callback)
+	run: function(settings, callback)
 	{
 		// Keep a timer, so we know how long the tool took to run.
 		let start_time = process.hrtime();
@@ -187,12 +189,13 @@ module.exports =
 
 
 		// Retrieve all scripts in this page (ordered based on execution order).
-		let scripts = await webpage_tools.get_scripts( settings.url );
+		let scripts = webpage_tools.get_scripts( settings.url );
 		stats.js_files = scripts.length;
 
 		// Create a graph with each function as a node, plus the base caller node.
 		// Connect them all together from the start, using the CONSTRUCTED_EDGE type.
 		let nodes = GraphTools.build_function_graph(scripts, CONSTRUCTED_EDGE.value);
+
 		console.log("Finished creating function graph");
 		// The number of functions is the number of nodes in the graph, minus one for the base caller node.
 		stats.function_count = nodes.length - 1;
@@ -212,6 +215,7 @@ module.exports =
 			timeout: settings.timeout,
 			pace: settings.pace,
 			url: settings.url,
+			proxy: settings.proxy,
 			error_handler: function(name, message)
 			{
 				if(settings.missteps)
@@ -220,40 +224,40 @@ module.exports =
 				}
 			}
 		};
-
+		console.log("Initial number of edges: ", analyzer_settings.base_node.get_edges().length, new Date());
 		if(analyzers.functions.length > 0)
 		{
 			// Run each analyzer in turn, letting it edit the graph (mark edges).
-			async_loop(analyzers.functions, analyzer_settings, async function(analyzer_run_info)
-			{
-				stats.analyzer_info = analyzer_run_info.reduce(function(acc, current)
-				{
-					acc.push( current[0] + ': ' + current[1] );
-					return acc;
-				}, []).join(';');
-
-				// Once we are done with analyzing the source, start processing the marked graph.
-				await process_marked_graph();
-			});
+			
+			async_loop(analyzers.functions, analyzer_settings, function(analyzer_run_info)
+					{
+						stats.analyzer_info = analyzer_run_info.reduce(function(acc, current)
+						{
+							acc.push( current[0] + ': ' + current[1] );
+							return acc;
+						}, []).join(';');
+						// Once we are done with analyzing the source, start processing the marked graph.
+						process_marked_graph();
+					}
+			);
 		}else{
 			// If there are no analyzers set, just process the graph.
 			// This is useful for e.g. call graph image generation.
-			await process_marked_graph();
+			process_marked_graph();
 		}
 
 
-		async function process_marked_graph()
+		function process_marked_graph()
 		{
 			// Once we're done with all the analyzers, remove any edge that was constructed.
 			if(!settings.noremove)
 			{
 				nodes = GraphTools.remove_constructed_edges(nodes, CONSTRUCTED_EDGE.value);
 
-
 				let disconnected_nodes = GraphTools.get_disconnected_nodes(nodes);
 
 				// Do the actual work: remove all nodes that are disconnected (= functions without incoming edges = uncalled functions).
-				await remove_uncalled_functions(disconnected_nodes, settings.url);
+				remove_uncalled_functions(disconnected_nodes, settings.url);
 
 				// The number of removed functions equals the number of nodes without any incoming edges (a disconnected node).
 				// The base caller node is never disconnected, so don't subtract from this.
@@ -273,7 +277,7 @@ module.exports =
 					stats.graph = GraphTools.output_function_graph(GraphTools.get_connected_nodes(nodes), analyzers.fingerprints);
 				}
 			}
-
+			DBModelMySql.writeFileStats(settings.url);
 			return_results();
 		}
 

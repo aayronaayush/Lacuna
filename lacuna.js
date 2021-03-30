@@ -26,7 +26,7 @@ try
 		{ name: 'directory', type: String },
 		{ name: 'url', type: String, defaultOption: true },
 		{ name: 'index', type: String, alias: 'i' },
-
+		{ name: 'proxy', type: String },
 		{ name: 'csv', type: Boolean, alias: 'c' },
 		{ name: 'csvfile', type: String, alias: 'f' },
 
@@ -57,6 +57,11 @@ if (!options['url']) {
 	console.error('No url specified.');
  	process.exit(2);
 }
+
+if (!options['proxy']) {
+	console.error('No proxy was specified.');
+	process.exit(2);
+;}
 
 // Extend our default settings with the command line arguments (if available).
 let settings =
@@ -104,7 +109,8 @@ try
 		show_disconnected: settings.entire,
 		timeout: settings.timeout,
 		pace: settings.pace,
-		missteps: settings.missteps
+		missteps: settings.missteps,
+		proxy: settings.proxy
 	}, function(results)
 	{
 		// If the CSV option was set, output result data to the csv file (see 'csv' above).
@@ -123,10 +129,9 @@ try
 		{
 			// Don't show graph DOT string in output
 			delete results.graph;
-
-			console.log(results);
 		}
 		console.log("Analysis complete");
+		process.exit(1);
 	});
 	// Keep waiting
 	process.stdin.resume();

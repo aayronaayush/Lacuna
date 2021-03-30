@@ -11,6 +11,7 @@ module.exports = function(functions, settings, callback)
 	    length = functions.length,
 	    analyzer_results = [];
 
+	
 	let loop = function(result)
 	{
 		i++;

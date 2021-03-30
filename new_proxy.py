@@ -12,9 +12,9 @@ from urllib.parse import urlparse
 
 # search for match in DB
 connection = pymysql.connect(host='127.0.0.1',
-                             user='root',
-                             port=3306,
-                             password='password',
+                             user='russel',
+                             port=9092,
+                             password='Comnets@2020',
                              db='deadcode',
                              autocommit=True)
 
@@ -25,7 +25,7 @@ def parseUrl(url):
     # Attempt to insert, there is a unique condition so if it faily, it fails
     parsedUrl = urlparse(url)
     if parsedUrl.path == '': 
-        parsedUrl.path = "/" # Remove descrepancies between "/" and "" ending urls
+        parsedUrl = urlparse(url+"/") # Remove descrepancies between "/" and "" ending urls
     return parsedUrl.scheme + "://" + parsedUrl.netloc + parsedUrl.path
     
 
@@ -47,7 +47,7 @@ def request(flow: http.HTTPFlow) -> None:
                 requestUrl = flow.request.pretty_url.split("?")[0]
                 flow.initiatingUrl = parseUrl(flow.request.headers["initiating-url"])
                 del flow.request.headers["initiating-url"]
-                query_template_search = "SELECT headFilePath, updateFilePath, delay FROM cachedPages WHERE requestUrl = '{0}' AND initiatingUrl = '{1}'".format(requestUrl, flow.initiatingUrl)
+                query_template_search = "SELECT headFilePath, updateFilePath, delay, contFilePath FROM cachedPages WHERE requestUrl = '{0}' AND initiatingUrl = '{1}'".format(requestUrl, flow.initiatingUrl)
                 cursor.execute(query_template_search)
                 sql_response = cursor.fetchone()
         finally:
@@ -55,14 +55,20 @@ def request(flow: http.HTTPFlow) -> None:
 
         # return miss if not cache hit
         if not sql_response:
-            #flow.response = http.HTTPResponse.make (200,"",{"Content-Type": "text/html"})
+            # if flow.runningTest:
+            #     flow.response = http.HTTPResponse.make (200,"",{"Content-Type": "text/html"})
             return
         else:
             print ("--------- CACHE HIT {} -----------".format(requestUrl))
 
-            with open(sql_response[1], 'rb') as temp_file:
-                temp_content = temp_file.read()
-                temp_file.close()
+            if sql_response[1] != None:
+                with open(sql_response[1], 'rb') as temp_file:
+                    temp_content = temp_file.read()
+                    temp_file.close()
+            else:
+                with open(sql_response[3], 'rb') as temp_file:
+                    temp_content = temp_file.read()
+                    temp_file.close()
 
             with open(sql_response[0], 'rb') as temp_file:
                 temp_headers = pickle.load(temp_file, encoding='latin1')
@@ -113,9 +119,11 @@ def response(flow: http.HTTPFlow) -> None:
             
         # if not hit, store the element in the DB, also check if we are not currently running the test
         if not sql_response and not flow.runningTest:
-
+            isJavascript = False
             try:
                 ttt = flow.response.headers["Content-Type"].split(";")[0]
+                if "javascript" in ttt:
+                    isJavascript = True
             except:
                 ttt = "None"
 
@@ -137,9 +145,14 @@ def response(flow: http.HTTPFlow) -> None:
 
             try:
                 with connection.cursor() as cursor:
-                    query_template_insert = "INSERT INTO cachedPages (initiatingUrl, requestUrl, headFilePath, contFilePath, updateFilePath, type, delay) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                    cursor.execute(query_template_insert,
-                                   (flow.initiatingUrl, flow.request.pretty_url.split("?")[0], header_path, content_path, update_path, ttt, time_passed))
+                    if isJavascript:
+                        query_template_insert = "INSERT INTO cachedPages (initiatingUrl, requestUrl, headFilePath, contFilePath, updateFilePath, type, delay) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                        cursor.execute(query_template_insert,
+                                    (flow.initiatingUrl, flow.request.pretty_url.split("?")[0], header_path, content_path, update_path, ttt, time_passed))
+                    else:
+                        query_template_insert = "INSERT INTO cachedPages (initiatingUrl, requestUrl, headFilePath, contFilePath, type, delay) VALUES (%s, %s, %s, %s, %s, %s)"
+                        cursor.execute(query_template_insert,
+                                    (flow.initiatingUrl, flow.request.pretty_url.split("?")[0], header_path, content_path, ttt, time_passed))
 
             finally:
                 cursor.close()
@@ -153,10 +166,10 @@ def response(flow: http.HTTPFlow) -> None:
                 temp_file.write(flow.response.content)
                 temp_file.close()
 
-
-            with open(update_path, 'wb') as temp_file:
-                temp_file.write(flow.response.content)
-                temp_file.close()
+            if isJavascript:
+                with open(update_path, 'wb') as temp_file:
+                    temp_file.write(flow.response.content)
+                    temp_file.close()
 
     # end of insert of DB code
     return
