@@ -44,7 +44,7 @@ const getFile = (requestUrl, initiatingUrl) => {
 }
 
 const getAllFiles = (initiatingUrl) => {
-    
+    // do a recursive search within the folder to retrieve the path of the scripts
     let rows = con.query('SELECT * FROM topMillion.cachedPages WHERE initiatingUrl=? AND updateFilePath IS NOT NULL', [initiatingUrl])
     let res = rows.map((val) => 
                 ({
