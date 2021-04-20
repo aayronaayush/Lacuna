@@ -45,6 +45,7 @@ function get_analyzer_data(filter) {
 
 	filter.forEach(function (name) {
 		if (available_analyzers.indexOf(name) != -1) {
+			// if we find the analyzer
 			let require_name = path.join(folder, name);
 
 			let analyzer = require(require_name);
@@ -156,7 +157,7 @@ function remove_nested_functions(file_name, functions) {
 }
 
 module.exports = {
-	run: function (settings, callback) {
+	run: async function (settings, callback) {
 		// Keep a timer, so we know how long the tool took to run.
 		let start_time = process.hrtime();
 
@@ -171,8 +172,7 @@ module.exports = {
 		};
 
 		// Retrieve all scripts in this page (ordered based on execution order).
-		let scripts = webpage_tools.get_scripts(settings.directory); // here we need to retrieve the script from the folder as well as the page
-		/* 
+		let scripts = await webpage_tools.get_scripts(settings.directory); // here we need to retrieve the script from the folder as well as the page
 		stats.js_files = scripts.length;
 
 		// Create a graph with each function as a node, plus the base caller node.
@@ -238,6 +238,7 @@ module.exports = {
 			process_marked_graph();
 		}
 
+		/* 
 		function process_marked_graph() {
 			// Once we're done with all the analyzers, remove any edge that was constructed.
 			if (!settings.noremove) {

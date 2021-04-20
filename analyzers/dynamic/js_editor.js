@@ -3,118 +3,103 @@
 	Niels Groot Obbink
 */
 
-'use strict';
+"use strict";
 
+require("./native_extentions");
 
+let file_system = require("fs"),
+	esprima = require("esprima");
+const DBModelMySql = require("../../db_mysql");
 
-require('./native_extentions');
-
-let file_system = require('fs'),
-    esprima = require('esprima');
-const DBModelMySql = require('../../db_mysql');
-
-
-module.exports = function()
-{
+module.exports = function () {
 	this.file_name = null;
 	this.source = null;
 	this.original_source = null;
 	this.functions = null;
 	this.url = null;
 
-
-	this.load = function(file_name, source, url)
-	{
-		if(file_name)
-		{
+	this.load = function (file_name, source, url) {
+		if (file_name) {
 			this.file_name = file_name;
 			this.original_source = this.source = source;
-			this.url = url
+			this.url = url;
 			// Also retrieve and save a list of all functions in this script file.
-			this.functions = this.get_functions( this.source );
+			this.functions = this.get_functions(this.source);
 		}
 	};
 
-
-	this.save = function()
-	{
-		if(this.file_name == null)
-		{
+	this.save = function () {
+		if (this.file_name == null) {
 			return;
 		}
 		DBModelMySql.writeAndPersist(this.file_name, this.url, this.source);
 	};
 
-
-
-	this.restore = function()
-	{
+	this.restore = function () {
 		this.source = this.original_source;
 
 		this.save();
 	};
 
-
-
-	this.add_log_calls = function(logger)
-	{
+	this.add_log_calls = function (logger) {
 		let log_call,
-		    offset = 0,
-		    new_source = this.source;	// Start with the original source.
+			offset = 0,
+			new_source = this.source; // Start with the original source.
 
-		for(let i = 0; i < this.functions.length; i++)
-		{
+		for (let i = 0; i < this.functions.length; i++) {
 			let this_function = this.functions[i];
 
 			// Create a log call for this function.
-			log_call = logger(this.file_name, this_function.start, this_function.end);
+			log_call = logger(
+				this.file_name,
+				this_function.start,
+				this_function.end
+			);
 
 			// Insert the log call in the source.
 			// Starting character position is function body location (plus one for the { character) plus length of all previously inserted log calls.
-			new_source = new_source.insert(this_function.body.start + 1 + offset, log_call);
+			new_source = new_source.insert(
+				this_function.body.start + 1 + offset,
+				log_call
+			);
 
 			// Increment the offset with the length of the log call, so the next insertion is at the right place.
 			offset += log_call.length;
 		}
-		this.source = `var functions_logged={};\n`+new_source;
+		this.source = `var functions_logged={};\n` + new_source;
 	};
 
-
-
-	this.get_functions = function(source)
-	{
+	this.get_functions = function (source) {
 		let functions = [];
 
 		let last_function = null;
-		
+
 		try {
-			esprima.parseModule(source, {range: true}, function(node, meta)
-			{
+			esprima.parseModule(source, { range: true }, function (node, meta) {
 				// We are only interested in functions (declarations and expressions).
-				if(node.type == 'FunctionDeclaration' || node.type == 'FunctionExpression')
-				{
+				if (
+					node.type == "FunctionDeclaration" ||
+					node.type == "FunctionExpression"
+				) {
 					let containing_function = last_function;
 					last_function = node;
 
 					// Gather the data for this function in a abbreviated format.
-					let function_data =
-					{
+					let function_data = {
 						start: node.range[0],
 						end: node.range[1],
-						body:
-						{
+						body: {
 							start: node.body.range[0],
-							end: node.body.range[1]
-						}
+							end: node.body.range[1],
+						},
 					};
 
-					if(node.type == 'FunctionDeclaration')
-					{
-						function_data.type = 'declaration';
+					if (node.type == "FunctionDeclaration") {
+						function_data.type = "declaration";
 						function_data.name = node.id.name;
-					}else{
+					} else {
 						// If it's not a FunctionDeclaration it must be a FunctionExpression.
-						function_data.type = 'expression';
+						function_data.type = "expression";
 					}
 
 					// Save the function data.
@@ -123,19 +108,13 @@ module.exports = function()
 			});
 
 			// Esprima doesn't return an ordered node list, so sort the functions based on starting position.
-			functions = functions.sort(function(a, b)
-			{
+			functions = functions.sort(function (a, b) {
 				return a.start - b.start;
 			});
-
-		}	
-		catch (err) {
-			console.log("ESPrima error while parsing file")
-		}	
-		finally {
+		} catch (err) {
+			console.log("ESPrima error while parsing file");
+		} finally {
 			return functions;
 		}
-
-		
 	};
 };

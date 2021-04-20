@@ -107,7 +107,7 @@ async function getAllFiles(directoryPath) {
 	}
 }
 
-let get_scripts = function (directory) {
+let get_scripts = async function (directory) {
 	let scripts = {
 		normal: [],
 		async: [],
@@ -115,45 +115,56 @@ let get_scripts = function (directory) {
 	};
 
 	const res = getAllFiles(directory);
-	res.then((arr) => {
-		console.log(`found ${arr.length} js files`);
+	await res.then((jsFilePaths) => {
+		// console.log(`found ${jsFilePaths.length} js files`);
+		let jsFilesContent = []; // arr of objects {filePath, content}
+
+		jsFilePaths.forEach((filePath) => {
+			const contents = file_system.readFileSync(filePath).toString();
+			// console.log(contents);
+			jsFilesContent.push({
+				source: contents,
+				filePath,
+			});
+		});
+		// console.log(jsFilesContent.length);
+		if (jsFilesContent == null || res.length == 0) {
+			console.error(
+				"Error getting proxy url, ensure the url has been instrumented with the proxy"
+			);
+			process.exit(2);
+		} else {
+			jsFilesContent.forEach((jsFile) => {
+				let entry = {
+					type: null, // 'inline', 'script'
+					source: null, // source code
+					file: null, // file name of the script (or HTML file name).
+					functions: null, // list of functions and location
+					// Optional:
+					location: null, // if type is 'inline', the offset of the code in the HTML document ({start, end}).
+				};
+				entry.type = "script";
+				entry.source = jsFile.source;
+				// entry.file = module.url;
+				entry.full_path = jsFile.filePath;
+				// entry.file_indexed = entry.file;
+				entry.full_path_indexed = entry.filePath;
+
+				try {
+					entry.functions = get_functions(entry);
+				} catch (exception) {
+					entry.functions = [];
+					console.error("Error parsing: ", entry.file);
+					// throw 'webpage_tools error: JS parse error: ' + exception;
+				}
+				// assume everything is in normal order
+				scripts.normal.push(entry);
+			});
+			console.log(`Found ${scripts.normal.length} js files`);
+			return scripts.normal;
+		}
 	});
-
-	// res = DBModelMySql.getAllFiles(url); // pass in the path of root
-	// if (res == null || res.length == 0) {
-	// 	console.error(
-	// 		"Error getting proxy url, ensure the url has been instrumented with the proxy"
-	// 	);
-	// 	process.exit(2);
-	// } else {
-	// 	res.forEach((module) => {
-	// 		let entry = {
-	// 			type: null, // 'inline', 'script'
-	// 			source: null, // source code
-	// 			file: null, // file name of the script (or HTML file name).
-	// 			functions: null, // list of functions and location
-	// 			// Optional:
-	// 			location: null, // if type is 'inline', the offset of the code in the HTML document ({start, end}).
-	// 		};
-	// 		entry.type = "script";
-	// 		entry.source = module.source;
-	// 		entry.file = module.url;
-	// 		entry.full_path = module.url;
-	// 		entry.file_indexed = entry.file;
-	// 		entry.full_path_indexed = entry.full_path;
-
-	// 		try {
-	// 			entry.functions = get_functions(entry);
-	// 		} catch (exception) {
-	// 			entry.functions = [];
-	// 			console.error("Error parsing: ", entry.file);
-	// 			// throw 'webpage_tools error: JS parse error: ' + exception;
-	// 		}
-	// 		// assume everything is in normal order
-	// 		scripts.normal.push(entry);
-	// 	});
-	// 	return scripts.normal;
-	// }
+	return scripts.normal;
 };
 
 module.exports = {
